@@ -25,83 +25,133 @@ st.markdown("""
     .stApp h1, .stApp h2, .stApp h3,
     .stApp div { color: #F0F2F6 !important; }
 
-    .card-lancamento {
-        background: #1E2130;
-        border: 1px solid #2E3250;
-        border-radius: 12px;
-        padding: 14px 18px;
-        margin-bottom: 8px;
-    }
-    .card-mes {
-        background: #1E2130;
-        border: 1px solid #2E3250;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 10px;
-    }
-    .card-mes:hover { border-color: #4F6EF7; }
-    .total-box {
+    /* Cabeçalho do mês */
+    .mes-header {
         background: #4F6EF7;
+        border-radius: 10px 10px 0 0;
+        padding: 10px 18px;
+        font-size: 16px;
+        font-weight: 700;
         color: white !important;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 12px;
-        font-size: 18px;
-        font-weight: bold;
+        margin-bottom: 0;
     }
-    .tabela-geral {
+
+    /* Tabela de lançamentos */
+    .tabela-wrapper {
+        background: #1E2130;
+        border: 1px solid #2E3250;
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        overflow: hidden;
+        margin-bottom: 4px;
+    }
+    .tabela-header {
+        display: grid;
+        grid-template-columns: 70px 1fr 90px 60px;
+        padding: 7px 14px;
+        background: #161929;
+        border-bottom: 1px solid #2E3250;
+        font-size: 11px;
+        font-weight: 700;
+        color: #6B7280 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .tabela-linha {
+        display: grid;
+        grid-template-columns: 70px 1fr 90px 60px;
+        padding: 9px 14px;
+        border-bottom: 1px solid #1A1F35;
+        align-items: center;
+        font-size: 13px;
+    }
+    .tabela-linha:last-child { border-bottom: none; }
+    .tabela-linha:hover { background: #232840; }
+
+    /* Tabela resumo */
+    .resumo-wrapper {
         background: #12182B;
         border: 1px solid #4F6EF7;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-top: 16px;
-        margin-bottom: 8px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 12px;
+        margin-bottom: 24px;
     }
-    .tabela-titulo {
-        font-size: 13px;
+    .resumo-header {
+        background: #1a2540;
+        padding: 8px 16px;
+        font-size: 11px;
         font-weight: 700;
         color: #4F6EF7 !important;
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-bottom: 10px;
     }
-    .secao-titulo {
-        font-size: 16px;
+    .resumo-linha {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 16px;
+        border-bottom: 1px solid #1E2D4A;
+        font-size: 13px;
+    }
+    .resumo-linha:last-child { border-bottom: none; }
+    .resumo-linha.destaque {
+        background: #1a2540;
         font-weight: 700;
-        color: #A0AEC0 !important;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 20px 0 8px 0;
     }
-    /* Pix: verde */
+
+    /* Badges */
     .badge-pix {
         background: #064E3B; color: #34D399 !important;
-        border-radius: 6px; padding: 2px 8px;
+        border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 700;
     }
-    /* Crédito: vermelho (invertido com débito) */
     .badge-credito {
         background: #7C2D12; color: #FCA5A5 !important;
-        border-radius: 6px; padding: 2px 8px;
+        border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 700;
     }
-    /* Débito: roxo (invertido com crédito) */
     .badge-debito {
         background: #4C1D95; color: #C4B5FD !important;
-        border-radius: 6px; padding: 2px 8px;
+        border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 700;
     }
     .badge-receber {
         background: #1E3A5F; color: #93C5FD !important;
-        border-radius: 6px; padding: 2px 8px;
+        border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 700;
     }
+    .badge-recebido {
+        background: #14532D; color: #86EFAC !important;
+        border-radius: 5px; padding: 1px 6px;
+        font-size: 11px; font-weight: 700;
+    }
+
+    /* Secao titulo */
+    .secao-titulo {
+        font-size: 13px;
+        font-weight: 700;
+        color: #6B7280 !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 24px 0 8px 0;
+    }
+
+    /* Próximos meses card */
+    .card-proximo {
+        background: #1E2130;
+        border: 1px solid #2E3250;
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 8px;
+        cursor: pointer;
+    }
+
     .stTextInput input, .stNumberInput input {
         background-color: #1E2130 !important;
         color: #F0F2F6 !important;
         border: 1px solid #2E3250 !important;
     }
-    /* Remove setas do number input */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type=number] { -moz-appearance: textfield; }
@@ -115,7 +165,6 @@ st.markdown("""
     }
     .stButton > button:hover { background-color: #3A57D4 !important; }
 
-    /* Botão Voltar menor e discreto */
     .btn-voltar > button {
         width: auto !important;
         background-color: #1E2130 !important;
@@ -124,20 +173,12 @@ st.markdown("""
         padding: 4px 14px !important;
         font-size: 13px !important;
     }
-    .btn-voltar > button:hover {
-        background-color: #2E3250 !important;
-    }
-
-    /* Botões + e - das parcelas */
     .btn-parcela > button {
         background-color: #2E3250 !important;
         font-size: 18px !important;
         font-weight: 700 !important;
-        padding: 2px 0 !important;
     }
-    .btn-parcela > button:hover {
-        background-color: #4F6EF7 !important;
-    }
+    .btn-parcela > button:hover { background-color: #4F6EF7 !important; }
 
     .block-container { padding-top: 2rem; }
 </style>
@@ -151,7 +192,7 @@ MESES_PT = {
     9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro",
 }
 
-BADGE = {
+BADGE_HTML = {
     "Pix":       '<span class="badge-pix">Pix</span>',
     "Credito":   '<span class="badge-credito">Crédito</span>',
     "Debito":    '<span class="badge-debito">Débito</span>',
@@ -187,9 +228,15 @@ def criar_tabelas():
                 numero         INTEGER NOT NULL,
                 vencimento     TEXT    NOT NULL,
                 valor          REAL    NOT NULL,
+                recebido       INTEGER NOT NULL DEFAULT 0,
                 FOREIGN KEY (lancamento_id) REFERENCES lancamentos(id)
             )
         """)
+        # Adiciona coluna recebido se ainda não existir (compatibilidade)
+        try:
+            conn.execute("ALTER TABLE parcelas ADD COLUMN recebido INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
 
 def salvar_lancamento(dados: dict) -> int:
     data_compra = datetime.strptime(dados["data"], "%d/%m/%Y")
@@ -208,6 +255,11 @@ def salvar_lancamento(dados: dict) -> int:
                 VALUES (?, ?, ?, ?)
             """, (lid, i + 1, venc.strftime("%Y-%m-%d"), dados["valor_parcela"]))
     return lid
+
+def marcar_recebido(parcela_id: int, recebido: bool):
+    with conectar() as conn:
+        conn.execute("UPDATE parcelas SET recebido = ? WHERE id = ?",
+                     (1 if recebido else 0, parcela_id))
 
 def buscar_meses_com_parcelas():
     with conectar() as conn:
@@ -232,7 +284,7 @@ def buscar_parcelas_do_mes(ano_mes: str):
     with conectar() as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute("""
-            SELECT p.numero, p.vencimento, p.valor,
+            SELECT p.id, p.numero, p.vencimento, p.valor, p.recebido,
                    l.descricao, l.pagamento, l.qtd_parcelas, l.data_compra
             FROM parcelas p JOIN lancamentos l ON l.id = p.lancamento_id
             WHERE strftime('%Y-%m', p.vencimento) = ?
@@ -240,23 +292,23 @@ def buscar_parcelas_do_mes(ano_mes: str):
         """, (ano_mes,)).fetchall()
     return [dict(r) for r in rows]
 
-def buscar_resumo_mes(ano_mes: str) -> dict:
-    parcelas  = buscar_parcelas_do_mes(ano_mes)
+def buscar_resumo_mes(parcelas: list) -> dict:
     pix       = sum(p["valor"] for p in parcelas if p["pagamento"] == "Pix")
     credito   = sum(p["valor"] for p in parcelas if p["pagamento"] == "Credito")
     debito    = sum(p["valor"] for p in parcelas if p["pagamento"] == "Debito")
     a_receber = sum(p["valor"] for p in parcelas if p["pagamento"] == "A receber")
+    recebido  = sum(p["valor"] for p in parcelas if p["pagamento"] == "A receber" and p["recebido"])
     bruto     = pix + credito + debito
-    liquido   = bruto - a_receber
+    liquido   = bruto - recebido
     return {
         "pix": pix, "credito": credito, "debito": debito,
-        "a_receber": a_receber, "bruto": bruto, "liquido": liquido,
-        "total_parcelas": len(parcelas),
+        "a_receber": a_receber, "recebido": recebido,
+        "bruto": bruto, "liquido": liquido,
     }
 
 
 # ══════════════════════════════════════════
-#  ESTADO DA NAVEGAÇÃO
+#  ESTADO
 # ══════════════════════════════════════════
 
 if "tela" not in st.session_state:
@@ -265,6 +317,8 @@ if "mes_selecionado" not in st.session_state:
     st.session_state.mes_selecionado = None
 if "qtd_temp" not in st.session_state:
     st.session_state.qtd_temp = 1
+if "proximo_aberto" not in st.session_state:
+    st.session_state.proximo_aberto = None
 
 criar_tabelas()
 
@@ -275,61 +329,112 @@ LABEL_ATUAL   = f"{MESES_PT[MES_ATUAL_NUM]}/{ANO_ATUAL}"
 
 
 # ══════════════════════════════════════════
-#  COMPONENTES REUTILIZAVEIS
+#  COMPONENTES
 # ══════════════════════════════════════════
 
-def card_lancamento(p: dict):
-    parcela_txt = f"{p['numero']}/{p['qtd_parcelas']}" if p["qtd_parcelas"] > 1 else "à vista"
-    venc        = datetime.strptime(p["vencimento"], "%Y-%m-%d").strftime("%d/%m/%Y")
-    badge       = BADGE.get(p["pagamento"], p["pagamento"])
-    cor_valor   = "#93C5FD" if p["pagamento"] == "A receber" else "#22C55E"
+def bloco_mes(label: str, parcelas: list, chave_prefix: str):
+    """
+    Renderiza o bloco completo de um mês:
+    cabeçalho azul + tabela de lançamentos + tabela resumo.
+    O check de 'recebido' só aparece em lançamentos 'A receber'.
+    """
+    resumo = buscar_resumo_mes(parcelas)
 
-    st.markdown(f"""
-    <div class="card-lancamento">
-        <div style="display:flex; justify-content:space-between; align-items:center">
-            <span style="font-weight:600; font-size:14px">{p['descricao']}</span>
-            <span style="color:{cor_valor}; font-weight:700; font-size:14px">R$ {p['valor']:.2f}</span>
+    # Cabeçalho
+    st.markdown(f'<div class="mes-header">📅 {label}</div>', unsafe_allow_html=True)
+
+    # Cabeçalho das colunas
+    st.markdown("""
+    <div class="tabela-wrapper">
+        <div class="tabela-header">
+            <span>Data</span>
+            <span>Descrição</span>
+            <span>Tipo</span>
+            <span style="text-align:right">Valor</span>
         </div>
-        <div style="margin-top:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap">
-            {badge}
-            <span style="color:#6B7280; font-size:12px">Parcela {parcela_txt} · 📅 {venc}</span>
-        </div>
-    </div>
     """, unsafe_allow_html=True)
 
-def tabela_geral(resumo: dict):
+    # Linhas HTML (sem interação)
+    linhas_html = ""
+    for p in parcelas:
+        data_fmt  = datetime.strptime(p["data_compra"], "%d/%m/%Y").strftime("%d/%m")
+        parcela_txt = f"{p['numero']}/{p['qtd_parcelas']}" if p["qtd_parcelas"] > 1 else "1/1"
+        badge     = BADGE_HTML.get(p["pagamento"], p["pagamento"])
+
+        if p["pagamento"] == "A receber":
+            if p["recebido"]:
+                valor_html = f'<span style="color:#86EFAC; text-align:right; display:block; font-weight:700">R$ {p["valor"]:.2f}</span>'
+                badge = '<span class="badge-recebido">Recebido ✓</span>'
+            else:
+                valor_html = f'<span style="color:#93C5FD; text-align:right; display:block; font-weight:700">R$ {p["valor"]:.2f}</span>'
+        else:
+            valor_html = f'<span style="color:#22C55E; text-align:right; display:block; font-weight:700">R$ {p["valor"]:.2f}</span>'
+
+        desc_html = f'{p["descricao"]} <span style="color:#6B7280; font-size:11px">· {parcela_txt}</span>'
+
+        linhas_html += f"""
+        <div class="tabela-linha">
+            <span style="color:#6B7280">{data_fmt}</span>
+            <span>{desc_html}</span>
+            <span>{badge}</span>
+            {valor_html}
+        </div>
+        """
+
+    st.markdown(linhas_html + "</div>", unsafe_allow_html=True)
+
+    # Checkboxes para "A receber" — fora do HTML para ter interação
+    receber_list = [p for p in parcelas if p["pagamento"] == "A receber"]
+    if receber_list:
+        st.markdown('<div style="margin-top:6px; padding:0 4px">', unsafe_allow_html=True)
+        for p in receber_list:
+            marcado = bool(p["recebido"])
+            novo = st.checkbox(
+                f"✓  Recebi: {p['descricao']}  (R$ {p['valor']:.2f})",
+                value=marcado,
+                key=f"rec_{chave_prefix}_{p['id']}",
+            )
+            if novo != marcado:
+                marcar_recebido(p["id"], novo)
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Tabela resumo
+    pendente = resumo["a_receber"] - resumo["recebido"]
     st.markdown(f"""
-    <div class="tabela-geral">
-        <div class="tabela-titulo">Tabela Geral</div>
-        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E2D4A">
+    <div class="resumo-wrapper">
+        <div class="resumo-header">Tabela Geral</div>
+        <div class="resumo-linha">
             <span><span class="badge-pix">Pix</span></span>
             <span style="font-weight:600">R$ {resumo['pix']:.2f}</span>
         </div>
-        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E2D4A">
+        <div class="resumo-linha">
             <span><span class="badge-credito">Crédito</span></span>
             <span style="font-weight:600">R$ {resumo['credito']:.2f}</span>
         </div>
-        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E2D4A">
+        <div class="resumo-linha">
             <span><span class="badge-debito">Débito</span></span>
             <span style="font-weight:600">R$ {resumo['debito']:.2f}</span>
         </div>
-        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E2D4A">
-            <span><span class="badge-receber">A receber</span></span>
+        <div class="resumo-linha">
+            <span><span class="badge-receber">A receber</span>
+            <span style="color:#6B7280; font-size:11px; margin-left:6px">
+                (recebido R$ {resumo['recebido']:.2f} · pendente R$ {pendente:.2f})
+            </span></span>
             <span style="color:#93C5FD; font-weight:600">R$ {resumo['a_receber']:.2f}</span>
         </div>
-        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E2D4A">
-            <span style="color:#A0AEC0; font-size:13px">Total bruto</span>
-            <span style="font-weight:700">R$ {resumo['bruto']:.2f}</span>
+        <div class="resumo-linha destaque">
+            <span style="color:#A0AEC0">Total bruto</span>
+            <span>R$ {resumo['bruto']:.2f}</span>
         </div>
-        <div style="display:flex; justify-content:space-between; padding:8px 0 2px 0">
-            <span style="color:#22C55E; font-weight:700">Total líquido</span>
-            <span style="color:#22C55E; font-weight:700">R$ {resumo['liquido']:.2f}</span>
+        <div class="resumo-linha destaque">
+            <span style="color:#22C55E">Total líquido</span>
+            <span style="color:#22C55E">R$ {resumo['liquido']:.2f}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 def botao_voltar(destino: str):
-    """Botão voltar menor e discreto no topo."""
     st.markdown('<div class="btn-voltar">', unsafe_allow_html=True)
     if st.button("← Voltar"):
         st.session_state.tela = destino
@@ -358,82 +463,54 @@ def tela_inicio():
 
     # ── MÊS ATUAL ──
     st.markdown('<div class="secao-titulo">Mês atual</div>', unsafe_allow_html=True)
-
     if atual_list:
-        resumo         = buscar_resumo_mes(MES_ATUAL)
         parcelas_atual = buscar_parcelas_do_mes(MES_ATUAL)
-
-        st.markdown(f"""
-        <div class="total-box">
-            {LABEL_ATUAL}
-            <span style="float:right; font-size:14px; opacity:0.9">R$ {resumo['bruto']:.2f}</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        for p in parcelas_atual:
-            card_lancamento(p)
-
-        tabela_geral(resumo)
+        bloco_mes(LABEL_ATUAL, parcelas_atual, "atual")
     else:
         st.info("Nenhum lançamento este mês ainda.")
 
-    # ── PRÓXIMOS MESES — apenas um aberto por vez ──
+    # ── PRÓXIMOS MESES ──
     if proximos:
-        st.divider()
         st.markdown('<div class="secao-titulo">Próximos meses</div>', unsafe_allow_html=True)
-
-        # Guarda qual próximo mês está aberto
-        if "proximo_aberto" not in st.session_state:
-            st.session_state.proximo_aberto = None
-
         for m in proximos:
-            aberto = st.session_state.proximo_aberto == m["ano_mes"]
-            label_btn = f"▼  {m['label']}  —  R$ {m['total_valor']:.2f}  ({m['total_parcelas']} parcela(s))" if aberto \
-                   else f"▶  {m['label']}  —  R$ {m['total_valor']:.2f}  ({m['total_parcelas']} parcela(s))"
-
-            # Card clicável
+            aberto     = st.session_state.proximo_aberto == m["ano_mes"]
+            icone      = "▼" if aberto else "▶"
             st.markdown(f"""
-            <div class="card-mes">
+            <div class="card-proximo">
                 <div style="display:flex; justify-content:space-between; align-items:center">
-                    <span style="font-weight:600; font-size:15px">{m['label']}</span>
+                    <span style="font-weight:600">{icone}  {m['label']}</span>
                     <span style="color:#4F6EF7; font-weight:700">R$ {m['total_valor']:.2f}</span>
                 </div>
-                <div style="color:#6B7280; font-size:12px; margin-top:4px">
+                <div style="color:#6B7280; font-size:12px; margin-top:3px">
                     {m['total_parcelas']} parcela(s) agendada(s)
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            if st.button(label_btn, key=f"prox_{m['ano_mes']}", use_container_width=True):
-                # Alterna: se já está aberto fecha, senão abre e fecha o anterior
+            if st.button(f"{icone} {m['label']}", key=f"prox_{m['ano_mes']}",
+                         use_container_width=True):
                 st.session_state.proximo_aberto = None if aberto else m["ano_mes"]
                 st.rerun()
 
             if aberto:
                 parcelas_mes = buscar_parcelas_do_mes(m["ano_mes"])
-                resumo_mes   = buscar_resumo_mes(m["ano_mes"])
-                for p in parcelas_mes:
-                    card_lancamento(p)
-                tabela_geral(resumo_mes)
+                bloco_mes(m["label"], parcelas_mes, f"prox_{m['ano_mes']}")
 
     # ── MESES ANTERIORES ──
     if anteriores:
-        st.divider()
         st.markdown('<div class="secao-titulo">Meses anteriores</div>', unsafe_allow_html=True)
-
         for m in reversed(anteriores):
             st.markdown(f"""
-            <div class="card-mes">
+            <div class="card-proximo">
                 <div style="display:flex; justify-content:space-between; align-items:center">
-                    <span style="font-weight:600; font-size:15px">{m['label']}</span>
+                    <span style="font-weight:600">{m['label']}</span>
                     <span style="color:#A0AEC0; font-weight:700">R$ {m['total_valor']:.2f}</span>
                 </div>
-                <div style="color:#6B7280; font-size:12px; margin-top:4px">
+                <div style="color:#6B7280; font-size:12px; margin-top:3px">
                     {m['total_parcelas']} parcela(s)
                 </div>
             </div>
             """, unsafe_allow_html=True)
-
             if st.button(f"Ver {m['label']}", key=f"ant_{m['ano_mes']}",
                          use_container_width=True):
                 st.session_state.mes_selecionado = m
@@ -475,12 +552,10 @@ def tela_novo_lancamento():
         placeholder="0,00",
     )
 
-    # ── Parcelas com botões + e - simples ──
     qtd_parcelas = 1
     if pagamento == "Credito":
         st.markdown("**Parcelas**")
         col_menos, col_num, col_mais = st.columns([1, 2, 1])
-
         with col_menos:
             st.markdown('<div class="btn-parcela">', unsafe_allow_html=True)
             if st.button("−", key="btn_menos", use_container_width=True):
@@ -488,19 +563,14 @@ def tela_novo_lancamento():
                     st.session_state.qtd_temp -= 1
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
-
         with col_num:
             novo_val = st.number_input(
-                "qtd",
-                min_value=1, max_value=48,
-                value=st.session_state.qtd_temp,
-                step=1,
+                "qtd", min_value=1, max_value=48,
+                value=st.session_state.qtd_temp, step=1,
                 label_visibility="collapsed",
             )
-            # Atualiza só se o usuário digitou algo diferente
-            if novo_val != st.session_state.qtd_temp:
+            if int(novo_val) != st.session_state.qtd_temp:
                 st.session_state.qtd_temp = int(novo_val)
-
         with col_mais:
             st.markdown('<div class="btn-parcela">', unsafe_allow_html=True)
             if st.button("＋", key="btn_mais", use_container_width=True):
@@ -510,7 +580,6 @@ def tela_novo_lancamento():
             st.markdown('</div>', unsafe_allow_html=True)
 
         qtd_parcelas = st.session_state.qtd_temp
-
         if valor_total and qtd_parcelas > 1:
             st.caption(f"📌 {qtd_parcelas}x de R$ {valor_total / qtd_parcelas:.2f}")
 
@@ -542,35 +611,19 @@ def tela_novo_lancamento():
 
 
 # ══════════════════════════════════════════
-#  TELA: DETALHE DO MÊS (anteriores)
+#  TELA: DETALHE MÊS ANTERIOR
 # ══════════════════════════════════════════
 
 def tela_detalhe_mes():
     mes = st.session_state.mes_selecionado
-
     botao_voltar("inicio")
     st.title(mes["label"])
-
     parcelas = buscar_parcelas_do_mes(mes["ano_mes"])
-    resumo   = buscar_resumo_mes(mes["ano_mes"])
-
-    st.markdown(f"""
-    <div class="total-box">
-        Total do mês: R$ {resumo['bruto']:.2f}
-        <span style="float:right; font-size:13px; opacity:0.85">
-            {resumo['total_parcelas']} parcela(s)
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    for p in parcelas:
-        card_lancamento(p)
-
-    tabela_geral(resumo)
+    bloco_mes(mes["label"], parcelas, f"det_{mes['ano_mes']}")
 
 
 # ══════════════════════════════════════════
-#  ROTEADOR DE TELAS
+#  ROTEADOR
 # ══════════════════════════════════════════
 
 tela = st.session_state.tela
