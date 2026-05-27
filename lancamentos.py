@@ -73,18 +73,21 @@ st.markdown("""
         letter-spacing: 1px;
         margin: 20px 0 8px 0;
     }
+    /* Pix: verde */
     .badge-pix {
         background: #064E3B; color: #34D399 !important;
         border-radius: 6px; padding: 2px 8px;
         font-size: 11px; font-weight: 700;
     }
+    /* Crédito: vermelho (invertido com débito) */
     .badge-credito {
-        background: #4C1D95; color: #C4B5FD !important;
+        background: #7C2D12; color: #FCA5A5 !important;
         border-radius: 6px; padding: 2px 8px;
         font-size: 11px; font-weight: 700;
     }
+    /* Débito: roxo (invertido com crédito) */
     .badge-debito {
-        background: #7C2D12; color: #FCA5A5 !important;
+        background: #4C1D95; color: #C4B5FD !important;
         border-radius: 6px; padding: 2px 8px;
         font-size: 11px; font-weight: 700;
     }
@@ -98,6 +101,11 @@ st.markdown("""
         color: #F0F2F6 !important;
         border: 1px solid #2E3250 !important;
     }
+    /* Remove setas do number input */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+
     .stButton > button {
         width: 100%;
         border-radius: 8px;
@@ -106,6 +114,31 @@ st.markdown("""
         border: none !important;
     }
     .stButton > button:hover { background-color: #3A57D4 !important; }
+
+    /* Botão Voltar menor e discreto */
+    .btn-voltar > button {
+        width: auto !important;
+        background-color: #1E2130 !important;
+        color: #A0AEC0 !important;
+        border: 1px solid #2E3250 !important;
+        padding: 4px 14px !important;
+        font-size: 13px !important;
+    }
+    .btn-voltar > button:hover {
+        background-color: #2E3250 !important;
+    }
+
+    /* Botões + e - das parcelas */
+    .btn-parcela > button {
+        background-color: #2E3250 !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        padding: 2px 0 !important;
+    }
+    .btn-parcela > button:hover {
+        background-color: #4F6EF7 !important;
+    }
+
     .block-container { padding-top: 2rem; }
 </style>
 """, unsafe_allow_html=True)
@@ -113,16 +146,16 @@ st.markdown("""
 DB_PATH = "lancamentos.db"
 
 MESES_PT = {
-    1: "Janeiro", 2: "Fevereiro", 3: "Marco", 4: "Abril",
+    1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril",
     5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto",
     9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro",
 }
 
 BADGE = {
-    "Pix":        '<span class="badge-pix">Pix</span>',
-    "Credito":    '<span class="badge-credito">Credito</span>',
-    "Debito":     '<span class="badge-debito">Debito</span>',
-    "A receber":  '<span class="badge-receber">A receber</span>',
+    "Pix":       '<span class="badge-pix">Pix</span>',
+    "Credito":   '<span class="badge-credito">Crédito</span>',
+    "Debito":    '<span class="badge-debito">Débito</span>',
+    "A receber": '<span class="badge-receber">A receber</span>',
 }
 
 
@@ -196,7 +229,6 @@ def buscar_meses_com_parcelas():
     return resultado
 
 def buscar_parcelas_do_mes(ano_mes: str):
-    """Retorna parcelas do mes ordenadas do mais antigo para o mais novo."""
     with conectar() as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute("""
@@ -209,7 +241,7 @@ def buscar_parcelas_do_mes(ano_mes: str):
     return [dict(r) for r in rows]
 
 def buscar_resumo_mes(ano_mes: str) -> dict:
-    parcelas = buscar_parcelas_do_mes(ano_mes)
+    parcelas  = buscar_parcelas_do_mes(ano_mes)
     pix       = sum(p["valor"] for p in parcelas if p["pagamento"] == "Pix")
     credito   = sum(p["valor"] for p in parcelas if p["pagamento"] == "Credito")
     debito    = sum(p["valor"] for p in parcelas if p["pagamento"] == "Debito")
@@ -231,6 +263,8 @@ if "tela" not in st.session_state:
     st.session_state.tela = "inicio"
 if "mes_selecionado" not in st.session_state:
     st.session_state.mes_selecionado = None
+if "qtd_temp" not in st.session_state:
+    st.session_state.qtd_temp = 1
 
 criar_tabelas()
 
@@ -245,11 +279,10 @@ LABEL_ATUAL   = f"{MESES_PT[MES_ATUAL_NUM]}/{ANO_ATUAL}"
 # ══════════════════════════════════════════
 
 def card_lancamento(p: dict):
-    """Card de um lancamento com badge colorido por tipo."""
-    parcela_txt = f"{p['numero']}/{p['qtd_parcelas']}" if p["qtd_parcelas"] > 1 else "a vista"
-    venc = datetime.strptime(p["vencimento"], "%Y-%m-%d").strftime("%d/%m/%Y")
-    badge = BADGE.get(p["pagamento"], p["pagamento"])
-    cor_valor = "#93C5FD" if p["pagamento"] == "A receber" else "#22C55E"
+    parcela_txt = f"{p['numero']}/{p['qtd_parcelas']}" if p["qtd_parcelas"] > 1 else "à vista"
+    venc        = datetime.strptime(p["vencimento"], "%Y-%m-%d").strftime("%d/%m/%Y")
+    badge       = BADGE.get(p["pagamento"], p["pagamento"])
+    cor_valor   = "#93C5FD" if p["pagamento"] == "A receber" else "#22C55E"
 
     st.markdown(f"""
     <div class="card-lancamento">
@@ -259,14 +292,12 @@ def card_lancamento(p: dict):
         </div>
         <div style="margin-top:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap">
             {badge}
-            <span style="color:#6B7280; font-size:12px">Parcela {parcela_txt}</span>
-            <span style="color:#6B7280; font-size:12px">· 📅 {venc}</span>
+            <span style="color:#6B7280; font-size:12px">Parcela {parcela_txt} · 📅 {venc}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 def tabela_geral(resumo: dict):
-    """Tabela geral com totais por tipo de pagamento."""
     st.markdown(f"""
     <div class="tabela-geral">
         <div class="tabela-titulo">Tabela Geral</div>
@@ -275,11 +306,11 @@ def tabela_geral(resumo: dict):
             <span style="font-weight:600">R$ {resumo['pix']:.2f}</span>
         </div>
         <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E2D4A">
-            <span><span class="badge-credito">Credito</span></span>
+            <span><span class="badge-credito">Crédito</span></span>
             <span style="font-weight:600">R$ {resumo['credito']:.2f}</span>
         </div>
         <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E2D4A">
-            <span><span class="badge-debito">Debito</span></span>
+            <span><span class="badge-debito">Débito</span></span>
             <span style="font-weight:600">R$ {resumo['debito']:.2f}</span>
         </div>
         <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E2D4A">
@@ -291,21 +322,30 @@ def tabela_geral(resumo: dict):
             <span style="font-weight:700">R$ {resumo['bruto']:.2f}</span>
         </div>
         <div style="display:flex; justify-content:space-between; padding:8px 0 2px 0">
-            <span style="color:#22C55E; font-weight:700">Total liquido</span>
+            <span style="color:#22C55E; font-weight:700">Total líquido</span>
             <span style="color:#22C55E; font-weight:700">R$ {resumo['liquido']:.2f}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
+def botao_voltar(destino: str):
+    """Botão voltar menor e discreto no topo."""
+    st.markdown('<div class="btn-voltar">', unsafe_allow_html=True)
+    if st.button("← Voltar"):
+        st.session_state.tela = destino
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
 
 # ══════════════════════════════════════════
-#  TELA: INICIO
+#  TELA: INÍCIO
 # ══════════════════════════════════════════
 
 def tela_inicio():
-    st.title("Lancamentos")
+    st.title("💰 Lançamentos")
 
-    if st.button("+ Novo lancamento", use_container_width=True):
+    if st.button("+ Novo lançamento", use_container_width=True):
+        st.session_state.qtd_temp = 1
         st.session_state.tela = "novo"
         st.rerun()
 
@@ -316,12 +356,12 @@ def tela_inicio():
     proximos    = [m for m in todos_meses if m["ano_mes"] > MES_ATUAL]
     atual_list  = [m for m in todos_meses if m["ano_mes"] == MES_ATUAL]
 
-    # ── MES ATUAL ──
-    st.markdown('<div class="secao-titulo">Mes atual</div>', unsafe_allow_html=True)
+    # ── MÊS ATUAL ──
+    st.markdown('<div class="secao-titulo">Mês atual</div>', unsafe_allow_html=True)
 
     if atual_list:
-        resumo          = buscar_resumo_mes(MES_ATUAL)
-        parcelas_atual  = buscar_parcelas_do_mes(MES_ATUAL)
+        resumo         = buscar_resumo_mes(MES_ATUAL)
+        parcelas_atual = buscar_parcelas_do_mes(MES_ATUAL)
 
         st.markdown(f"""
         <div class="total-box">
@@ -335,21 +375,45 @@ def tela_inicio():
 
         tabela_geral(resumo)
     else:
-        st.info("Nenhum lancamento este mes ainda.")
+        st.info("Nenhum lançamento este mês ainda.")
 
-    # ── PROXIMOS MESES ──
+    # ── PRÓXIMOS MESES — apenas um aberto por vez ──
     if proximos:
         st.divider()
-        st.markdown('<div class="secao-titulo">Proximos meses</div>', unsafe_allow_html=True)
+        st.markdown('<div class="secao-titulo">Próximos meses</div>', unsafe_allow_html=True)
+
+        # Guarda qual próximo mês está aberto
+        if "proximo_aberto" not in st.session_state:
+            st.session_state.proximo_aberto = None
 
         for m in proximos:
-            with st.expander(f"{m['label']}  —  R$ {m['total_valor']:.2f}  ({m['total_parcelas']} parcela(s))"):
+            aberto = st.session_state.proximo_aberto == m["ano_mes"]
+            label_btn = f"▼  {m['label']}  —  R$ {m['total_valor']:.2f}  ({m['total_parcelas']} parcela(s))" if aberto \
+                   else f"▶  {m['label']}  —  R$ {m['total_valor']:.2f}  ({m['total_parcelas']} parcela(s))"
+
+            # Card clicável
+            st.markdown(f"""
+            <div class="card-mes">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <span style="font-weight:600; font-size:15px">{m['label']}</span>
+                    <span style="color:#4F6EF7; font-weight:700">R$ {m['total_valor']:.2f}</span>
+                </div>
+                <div style="color:#6B7280; font-size:12px; margin-top:4px">
+                    {m['total_parcelas']} parcela(s) agendada(s)
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button(label_btn, key=f"prox_{m['ano_mes']}", use_container_width=True):
+                # Alterna: se já está aberto fecha, senão abre e fecha o anterior
+                st.session_state.proximo_aberto = None if aberto else m["ano_mes"]
+                st.rerun()
+
+            if aberto:
                 parcelas_mes = buscar_parcelas_do_mes(m["ano_mes"])
                 resumo_mes   = buscar_resumo_mes(m["ano_mes"])
-
                 for p in parcelas_mes:
                     card_lancamento(p)
-
                 tabela_geral(resumo_mes)
 
     # ── MESES ANTERIORES ──
@@ -378,15 +442,12 @@ def tela_inicio():
 
 
 # ══════════════════════════════════════════
-#  TELA: NOVO LANCAMENTO
+#  TELA: NOVO LANÇAMENTO
 # ══════════════════════════════════════════
 
 def tela_novo_lancamento():
-    if st.button("← Voltar"):
-        st.session_state.tela = "inicio"
-        st.rerun()
-
-    st.title("Novo Lancamento")
+    botao_voltar("inicio")
+    st.title("Novo Lançamento")
 
     data_val = st.date_input(
         "Data da compra",
@@ -395,11 +456,13 @@ def tela_novo_lancamento():
         format="DD/MM/YYYY",
     )
 
-    descricao = st.text_input("Descricao")
+    descricao = st.text_input("Descrição")
 
     pagamento = st.radio(
         "Forma de pagamento",
         ["Pix", "Credito", "Debito", "A receber"],
+        format_func=lambda x: {"Pix": "Pix", "Credito": "Crédito",
+                                "Debito": "Débito", "A receber": "A receber"}[x],
         horizontal=True,
     )
 
@@ -412,32 +475,39 @@ def tela_novo_lancamento():
         placeholder="0,00",
     )
 
-    # Parcelas: começa vazio, pode digitar ou usar + e -
-    qtd_parcelas = None
+    # ── Parcelas com botões + e - simples ──
+    qtd_parcelas = 1
     if pagamento == "Credito":
-        st.markdown("**Quantidade de parcelas**")
+        st.markdown("**Parcelas**")
+        col_menos, col_num, col_mais = st.columns([1, 2, 1])
 
-        if "qtd_temp" not in st.session_state:
-            st.session_state.qtd_temp = 1
-
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col1:
-            if st.button("−", use_container_width=True):
+        with col_menos:
+            st.markdown('<div class="btn-parcela">', unsafe_allow_html=True)
+            if st.button("−", key="btn_menos", use_container_width=True):
                 if st.session_state.qtd_temp > 1:
                     st.session_state.qtd_temp -= 1
-        with col2:
-            qtd_digitada = st.number_input(
-                "parcelas",
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with col_num:
+            novo_val = st.number_input(
+                "qtd",
                 min_value=1, max_value=48,
                 value=st.session_state.qtd_temp,
                 step=1,
                 label_visibility="collapsed",
             )
-            st.session_state.qtd_temp = int(qtd_digitada)
-        with col3:
-            if st.button("＋", use_container_width=True):
+            # Atualiza só se o usuário digitou algo diferente
+            if novo_val != st.session_state.qtd_temp:
+                st.session_state.qtd_temp = int(novo_val)
+
+        with col_mais:
+            st.markdown('<div class="btn-parcela">', unsafe_allow_html=True)
+            if st.button("＋", key="btn_mais", use_container_width=True):
                 if st.session_state.qtd_temp < 48:
                     st.session_state.qtd_temp += 1
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
         qtd_parcelas = st.session_state.qtd_temp
 
@@ -446,15 +516,15 @@ def tela_novo_lancamento():
 
     st.divider()
 
-    if st.button("Salvar lancamento", use_container_width=True):
+    if st.button("Salvar lançamento", use_container_width=True):
         if not descricao.strip():
-            st.error("Digite uma descricao.")
+            st.error("Digite uma descrição.")
             return
         if not valor_total or valor_total <= 0:
             st.error("Digite um valor maior que zero.")
             return
 
-        parcelas_final = int(qtd_parcelas) if pagamento == "Credito" and qtd_parcelas else 1
+        parcelas_final = qtd_parcelas if pagamento == "Credito" else 1
         valor_parcela  = valor_total / parcelas_final
 
         salvar_lancamento({
@@ -466,25 +536,19 @@ def tela_novo_lancamento():
             "valor_parcela": valor_parcela,
         })
 
-        # Limpa o contador de parcelas
-        if "qtd_temp" in st.session_state:
-            del st.session_state.qtd_temp
-
+        st.session_state.qtd_temp = 1
         st.session_state.tela = "inicio"
         st.rerun()
 
 
 # ══════════════════════════════════════════
-#  TELA: DETALHE DO MES (meses anteriores)
+#  TELA: DETALHE DO MÊS (anteriores)
 # ══════════════════════════════════════════
 
 def tela_detalhe_mes():
     mes = st.session_state.mes_selecionado
 
-    if st.button("← Voltar"):
-        st.session_state.tela = "inicio"
-        st.rerun()
-
+    botao_voltar("inicio")
     st.title(mes["label"])
 
     parcelas = buscar_parcelas_do_mes(mes["ano_mes"])
@@ -492,7 +556,7 @@ def tela_detalhe_mes():
 
     st.markdown(f"""
     <div class="total-box">
-        Total do mes: R$ {resumo['bruto']:.2f}
+        Total do mês: R$ {resumo['bruto']:.2f}
         <span style="float:right; font-size:13px; opacity:0.85">
             {resumo['total_parcelas']} parcela(s)
         </span>
