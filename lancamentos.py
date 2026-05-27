@@ -472,25 +472,38 @@ def tela_inicio():
     # ── PRÓXIMOS MESES ──
     if proximos:
         st.markdown('<div class="secao-titulo">Próximos meses</div>', unsafe_allow_html=True)
-        for m in proximos:
-            aberto     = st.session_state.proximo_aberto == m["ano_mes"]
-            icone      = "▼" if aberto else "▶"
-            st.markdown(f"""
-            <div class="card-proximo">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <span style="font-weight:600">{icone}  {m['label']}</span>
-                    <span style="color:#4F6EF7; font-weight:700">R$ {m['total_valor']:.2f}</span>
-                </div>
-                <div style="color:#6B7280; font-size:12px; margin-top:3px">
-                    {m['total_parcelas']} parcela(s) agendada(s)
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
 
-            if st.button(f"{icone} {m['label']}", key=f"prox_{m['ano_mes']}",
-                         use_container_width=True):
+        # CSS para o botão de mês parecer um card
+        st.markdown("""
+        <style>
+        div[data-testid="stButton"].btn-mes > button {
+            background-color: #1E2130 !important;
+            color: #F0F2F6 !important;
+            border: 1px solid #2E3250 !important;
+            border-radius: 10px !important;
+            text-align: left !important;
+            padding: 14px 18px !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            margin-bottom: 4px;
+        }
+        div[data-testid="stButton"].btn-mes > button:hover {
+            border-color: #4F6EF7 !important;
+            background-color: #232840 !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        for m in proximos:
+            aberto = st.session_state.proximo_aberto == m["ano_mes"]
+            icone  = "▼" if aberto else "▶"
+            label  = f"{icone}  {m['label']}    R$ {m['total_valor']:.2f}  ·  {m['total_parcelas']} parcela(s)"
+
+            st.markdown('<div class="btn-mes">', unsafe_allow_html=True)
+            if st.button(label, key=f"prox_{m['ano_mes']}", use_container_width=True):
                 st.session_state.proximo_aberto = None if aberto else m["ano_mes"]
                 st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
             if aberto:
                 parcelas_mes = buscar_parcelas_do_mes(m["ano_mes"])
