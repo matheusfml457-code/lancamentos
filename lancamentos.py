@@ -572,7 +572,8 @@ def botao_voltar(destino: str):
 def tela_lancamentos():
     if st.button("+ Novo lançamento", use_container_width=True):
         st.session_state.qtd_temp = 1
-        st.session_state.qtd_parcelas = 1
+        if "qtd_parcelas" in st.session_state:
+            del st.session_state["qtd_parcelas"]
         st.session_state.tela = "novo"
         st.rerun()
 
@@ -699,22 +700,52 @@ def tela_resumo_anual():
 
     st.markdown('<div class="secao-titulo">Entradas x Saídas por mês</div>', unsafe_allow_html=True)
 
-    chart_df = df.set_index("Mês")[["Entradas", "Saídas"]]
-    st.bar_chart(
-        chart_df,
-        color=["#FF8C42", "#5A5A5A"],
-        use_container_width=True,
+    import plotly.graph_objects as go
+
+    meses_ordem = df["Mês"].tolist()
+
+    fig1 = go.Figure()
+    fig1.add_bar(name="Entradas", x=meses_ordem, y=df["Entradas"], marker_color="#FF8C42")
+    fig1.add_bar(name="Saídas", x=meses_ordem, y=df["Saídas"], marker_color="#5A5A5A")
+    fig1.update_layout(
+        barmode="group",
         height=260,
+        margin=dict(l=0, r=0, t=10, b=0),
+        plot_bgcolor="#1E1E1E",
+        paper_bgcolor="#1E1E1E",
+        font_color="#EDEDED",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+        xaxis=dict(
+            categoryorder="array",
+            categoryarray=meses_ordem,
+            tickangle=0,
+            gridcolor="#2C2C2C",
+        ),
+        yaxis=dict(gridcolor="#2C2C2C"),
     )
+    st.plotly_chart(fig1, use_container_width=True, config={"displayModeBar": False})
 
     st.markdown('<div class="secao-titulo">Saldo mensal</div>', unsafe_allow_html=True)
-    saldo_df = df.set_index("Mês")[["Saldo"]]
-    st.bar_chart(
-        saldo_df,
-        color=["#FF8C42"],
-        use_container_width=True,
+
+    cores_saldo = ["#FF8C42" if v >= 0 else "#5A5A5A" for v in df["Saldo"]]
+    fig2 = go.Figure()
+    fig2.add_bar(x=meses_ordem, y=df["Saldo"], marker_color=cores_saldo)
+    fig2.update_layout(
         height=200,
+        margin=dict(l=0, r=0, t=10, b=0),
+        plot_bgcolor="#1E1E1E",
+        paper_bgcolor="#1E1E1E",
+        font_color="#EDEDED",
+        showlegend=False,
+        xaxis=dict(
+            categoryorder="array",
+            categoryarray=meses_ordem,
+            tickangle=0,
+            gridcolor="#2C2C2C",
+        ),
+        yaxis=dict(gridcolor="#2C2C2C"),
     )
+    st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
 
     # Tabela resumo mensal — meses na horizontal (colunas), valores na vertical (linhas)
     st.markdown('<div class="secao-titulo">Detalhe mensal</div>', unsafe_allow_html=True)
@@ -849,7 +880,8 @@ def tela_novo_lancamento():
         })
 
         st.session_state.qtd_temp = 1
-        st.session_state.qtd_parcelas = 1
+        if "qtd_parcelas" in st.session_state:
+            del st.session_state["qtd_parcelas"]
         st.session_state.tela = "inicio"
         st.rerun()
 
