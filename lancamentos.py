@@ -19,28 +19,30 @@ st.set_page_config(
 st.markdown("""
 <style>
     .stApp {
-        background-color: #0F1117 !important;
-        color: #E8EAF0 !important;
+        background-color: #1A1A1A !important;
+        color: #EDEDED !important;
     }
     .stApp p, .stApp span, .stApp label,
     .stApp h1, .stApp h2, .stApp h3,
-    .stApp div { color: #E8EAF0 !important; }
+    .stApp div { color: #EDEDED !important; }
 
     /* Cabeçalho do mês */
     .mes-header {
-        background: #3D5AFE;
+        background: #2C2C2C;
+        border: 1px solid #3A3A3A;
+        border-bottom: none;
         border-radius: 8px 8px 0 0;
         padding: 8px 16px;
         font-size: 15px;
         font-weight: 600;
-        color: white !important;
+        color: #FF8C42 !important;
         margin-bottom: 0;
     }
 
     /* Tabela de lançamentos */
     .tabela-wrapper {
-        background: #181B26;
-        border: 1px solid #262B3D;
+        background: #232323;
+        border: 1px solid #3A3A3A;
         border-top: none;
         border-radius: 0 0 8px 8px;
         overflow: hidden;
@@ -50,11 +52,11 @@ st.markdown("""
         display: grid;
         grid-template-columns: 60px 1fr 85px 60px;
         padding: 6px 14px;
-        background: #12151F;
-        border-bottom: 1px solid #262B3D;
+        background: #1E1E1E;
+        border-bottom: 1px solid #3A3A3A;
         font-size: 10px;
         font-weight: 600;
-        color: #5C6378 !important;
+        color: #8A8A8A !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -62,28 +64,28 @@ st.markdown("""
         display: grid;
         grid-template-columns: 60px 1fr 85px 60px;
         padding: 7px 14px;
-        border-bottom: 1px solid #181B26;
+        border-bottom: 1px solid #2C2C2C;
         align-items: center;
         font-size: 13px;
     }
     .tabela-linha:last-child { border-bottom: none; }
-    .tabela-linha:hover { background: #1E222F; }
+    .tabela-linha:hover { background: #2A2A2A; }
 
     /* Tabela resumo */
     .resumo-wrapper {
-        background: #12151F;
-        border: 1px solid #2B3450;
+        background: #1E1E1E;
+        border: 1px solid #3A3A3A;
         border-radius: 8px;
         overflow: hidden;
         margin-top: 10px;
         margin-bottom: 22px;
     }
     .resumo-header {
-        background: #161B2E;
+        background: #2C2C2C;
         padding: 7px 16px;
         font-size: 10px;
         font-weight: 600;
-        color: #5C7CFA !important;
+        color: #FF8C42 !important;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
@@ -92,43 +94,49 @@ st.markdown("""
         justify-content: space-between;
         align-items: center;
         padding: 7px 16px;
-        border-bottom: 1px solid #1A2030;
+        border-bottom: 1px solid #2C2C2C;
         font-size: 13px;
     }
     .resumo-linha:last-child { border-bottom: none; }
     .resumo-linha.destaque {
-        background: #161B2E;
+        background: #2C2C2C;
         font-weight: 600;
     }
 
-    /* Badges */
+    /* Badges - todos em tons de cinza, diferenciados só por contorno/peso */
     .badge-pix {
-        background: #0D3B30; color: #4ADE9C !important;
+        background: #333333; color: #D9D9D9 !important;
+        border: 1px solid #4A4A4A;
         border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 600;
     }
     .badge-credito {
-        background: #4A1D14; color: #FF8A7A !important;
+        background: #3A2A1E; color: #FFB37D !important;
+        border: 1px solid #5A4030;
         border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 600;
     }
     .badge-debito {
-        background: #321E5C; color: #BDA6F5 !important;
+        background: #333333; color: #BFBFBF !important;
+        border: 1px solid #4A4A4A;
         border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 600;
     }
     .badge-receber {
-        background: #15314F; color: #7FB6F7 !important;
+        background: #2C2C2C; color: #9A9A9A !important;
+        border: 1px dashed #5A5A5A;
         border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 600;
     }
     .badge-recebido {
-        background: #0E3B22; color: #6EE7A0 !important;
+        background: #2C2C2C; color: #C9C9C9 !important;
+        border: 1px solid #4A4A4A;
         border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 600;
     }
     .badge-salario {
-        background: #0B3D2E; color: #38E0A0 !important;
+        background: #3A2A1E; color: #FF8C42 !important;
+        border: 1px solid #FF8C42;
         border-radius: 5px; padding: 1px 6px;
         font-size: 11px; font-weight: 700;
     }
@@ -137,7 +145,7 @@ st.markdown("""
     .secao-titulo {
         font-size: 12px;
         font-weight: 600;
-        color: #5C6378 !important;
+        color: #8A8A8A !important;
         text-transform: uppercase;
         letter-spacing: 1px;
         margin: 22px 0 8px 0;
@@ -145,17 +153,17 @@ st.markdown("""
 
     /* Próximos meses card */
     .card-proximo {
-        background: #181B26;
-        border: 1px solid #262B3D;
+        background: #232323;
+        border: 1px solid #3A3A3A;
         border-radius: 8px;
         padding: 12px 16px;
         margin-bottom: 6px;
     }
 
     .stTextInput input, .stNumberInput input {
-        background-color: #181B26 !important;
-        color: #E8EAF0 !important;
-        border: 1px solid #262B3D !important;
+        background-color: #232323 !important;
+        color: #EDEDED !important;
+        border: 1px solid #3A3A3A !important;
     }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
@@ -164,47 +172,43 @@ st.markdown("""
     .stButton > button {
         width: 100%;
         border-radius: 8px;
-        background-color: #3D5AFE !important;
-        color: white !important;
+        background-color: #FF8C42 !important;
+        color: #1A1A1A !important;
         border: none !important;
+        font-weight: 600 !important;
     }
-    .stButton > button:hover { background-color: #2E45D1 !important; }
+    .stButton > button:hover { background-color: #E67A33 !important; }
 
     .btn-voltar > button {
         width: auto !important;
-        background-color: #181B26 !important;
-        color: #8A92AB !important;
-        border: 1px solid #262B3D !important;
+        background-color: #232323 !important;
+        color: #BFBFBF !important;
+        border: 1px solid #3A3A3A !important;
         padding: 4px 14px !important;
         font-size: 13px !important;
+        font-weight: 400 !important;
     }
-    .btn-parcela > button {
-        background-color: #262B3D !important;
-        font-size: 18px !important;
-        font-weight: 600 !important;
-    }
-    .btn-parcela > button:hover { background-color: #3D5AFE !important; }
 
     .block-container { padding-top: 1.5rem; }
 
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] { gap: 4px; }
     .stTabs [data-baseweb="tab"] {
-        background-color: #181B26;
+        background-color: #232323;
         border-radius: 8px 8px 0 0;
         padding: 6px 16px;
-        color: #8A92AB !important;
+        color: #8A8A8A !important;
     }
     .stTabs [aria-selected="true"] {
-        background-color: #3D5AFE !important;
-        color: white !important;
+        background-color: #FF8C42 !important;
+        color: #1A1A1A !important;
     }
-    .stTabs [aria-selected="true"] p { color: white !important; }
+    .stTabs [aria-selected="true"] p { color: #1A1A1A !important; }
 
     /* KPI cards */
     .kpi-card {
-        background: #181B26;
-        border: 1px solid #262B3D;
+        background: #232323;
+        border: 1px solid #3A3A3A;
         border-radius: 8px;
         padding: 12px 14px;
         text-align: left;
@@ -212,7 +216,7 @@ st.markdown("""
     .kpi-label {
         font-size: 10px;
         font-weight: 600;
-        color: #5C6378 !important;
+        color: #8A8A8A !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 4px;
@@ -471,20 +475,20 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str):
 
         if p["pagamento"] == "A receber":
             if p["recebido"]:
-                valor_html = f'<span style="color:#6EE7A0; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
+                valor_html = f'<span style="color:#C9C9C9; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
                 badge = '<span class="badge-recebido">Recebido ✓</span>'
             else:
-                valor_html = f'<span style="color:#7FB6F7; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
+                valor_html = f'<span style="color:#9A9A9A; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
         elif p["pagamento"] == "Salario":
-            valor_html = f'<span style="color:#38E0A0; text-align:right; display:block; font-weight:700">+ R$ {p["valor"]:.2f}</span>'
+            valor_html = f'<span style="color:#FF8C42; text-align:right; display:block; font-weight:700">+ R$ {p["valor"]:.2f}</span>'
         else:
-            valor_html = f'<span style="color:#FF8A7A; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
+            valor_html = f'<span style="color:#D9D9D9; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
 
-        desc_html = f'{p["descricao"]} <span style="color:#5C6378; font-size:11px">· {parcela_txt}</span>'
+        desc_html = f'{p["descricao"]} <span style="color:#8A8A8A; font-size:11px">· {parcela_txt}</span>'
 
         linhas_html += f"""
         <div class="tabela-linha">
-            <span style="color:#5C6378">{data_fmt}</span>
+            <span style="color:#8A8A8A">{data_fmt}</span>
             <span>{desc_html}</span>
             <span>{badge}</span>
             {valor_html}
@@ -511,13 +515,13 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str):
 
     # Tabela resumo
     pendente = resumo["a_receber"] - resumo["recebido"]
-    saldo_cor = "#38E0A0" if resumo["saldo"] >= 0 else "#FF8A7A"
+    saldo_cor = "#FF8C42" if resumo["saldo"] >= 0 else "#A3A3A3"
     st.markdown(f"""
     <div class="resumo-wrapper">
         <div class="resumo-header">Resumo do mês</div>
         <div class="resumo-linha">
             <span><span class="badge-salario">Salário</span></span>
-            <span style="font-weight:600; color:#38E0A0">+ R$ {resumo['salario']:.2f}</span>
+            <span style="font-weight:600; color:#FF8C42">+ R$ {resumo['salario']:.2f}</span>
         </div>
         <div class="resumo-linha">
             <span><span class="badge-pix">Pix</span></span>
@@ -533,21 +537,21 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str):
         </div>
         <div class="resumo-linha">
             <span><span class="badge-receber">A receber</span>
-            <span style="color:#5C6378; font-size:11px; margin-left:6px">
+            <span style="color:#8A8A8A; font-size:11px; margin-left:6px">
                 (recebido R$ {resumo['recebido']:.2f} · pendente R$ {pendente:.2f})
             </span></span>
-            <span style="color:#7FB6F7; font-weight:600">R$ {resumo['a_receber']:.2f}</span>
+            <span style="color:#C9C9C9; font-weight:600">R$ {resumo['a_receber']:.2f}</span>
         </div>
         <div class="resumo-linha destaque">
-            <span style="color:#8A92AB">Total saídas</span>
-            <span style="color:#FF8A7A">R$ {resumo['saidas']:.2f}</span>
+            <span style="color:#8A8A8A">Total saídas</span>
+            <span style="color:#D9D9D9">R$ {resumo['saidas']:.2f}</span>
         </div>
         <div class="resumo-linha destaque">
-            <span style="color:#8A92AB">Total entradas</span>
-            <span style="color:#38E0A0">R$ {resumo['entradas']:.2f}</span>
+            <span style="color:#8A8A8A">Total entradas</span>
+            <span style="color:#FF8C42">R$ {resumo['entradas']:.2f}</span>
         </div>
         <div class="resumo-linha destaque">
-            <span style="color:#E8EAF0; font-weight:700">Saldo do mês</span>
+            <span style="color:#EDEDED; font-weight:700">Saldo do mês</span>
             <span style="color:{saldo_cor}; font-weight:700">R$ {resumo['saldo']:.2f}</span>
         </div>
     </div>
@@ -593,9 +597,9 @@ def tela_lancamentos():
         st.markdown("""
         <style>
         div[data-testid="stButton"].btn-mes > button {
-            background-color: #181B26 !important;
-            color: #E8EAF0 !important;
-            border: 1px solid #262B3D !important;
+            background-color: #232323 !important;
+            color: #EDEDED !important;
+            border: 1px solid #3A3A3A !important;
             border-radius: 8px !important;
             text-align: left !important;
             padding: 12px 16px !important;
@@ -604,8 +608,8 @@ def tela_lancamentos():
             margin-bottom: 4px;
         }
         div[data-testid="stButton"].btn-mes > button:hover {
-            border-color: #3D5AFE !important;
-            background-color: #1E222F !important;
+            border-color: #FF8C42 !important;
+            background-color: #2A2A2A !important;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -633,9 +637,9 @@ def tela_lancamentos():
             <div class="card-proximo">
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <span style="font-weight:600">{m['label']}</span>
-                    <span style="color:#8A92AB; font-weight:700">R$ {m['total_valor']:.2f}</span>
+                    <span style="color:#FF8C42; font-weight:700">R$ {m['total_valor']:.2f}</span>
                 </div>
-                <div style="color:#5C6378; font-size:12px; margin-top:3px">
+                <div style="color:#8A8A8A; font-size:12px; margin-top:3px">
                     {m['total_parcelas']} parcela(s)
                 </div>
             </div>
@@ -663,7 +667,10 @@ def tela_resumo_anual():
     total_entradas = df["Entradas"].sum()
     total_saidas   = df["Saídas"].sum()
     total_saldo    = total_entradas - total_saidas
-    saldo_cor      = "#38E0A0" if total_saldo >= 0 else "#FF8A7A"
+    saldo_cor      = "#FF8C42" if total_saldo >= 0 else "#A3A3A3"
+
+    def fmt_brl(v):
+        return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     # KPIs
     c1, c2, c3 = st.columns(3)
@@ -671,65 +678,97 @@ def tela_resumo_anual():
         st.markdown(f"""
         <div class="kpi-card">
             <div class="kpi-label">Entradas {ano}</div>
-            <div class="kpi-value" style="color:#38E0A0">R$ {total_entradas:,.2f}</div>
+            <div class="kpi-value" style="color:#FF8C42">{fmt_brl(total_entradas)}</div>
         </div>
-        """.replace(",", "X").replace(".", ",").replace("X", "."), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     with c2:
         st.markdown(f"""
         <div class="kpi-card">
             <div class="kpi-label">Saídas {ano}</div>
-            <div class="kpi-value" style="color:#FF8A7A">R$ {total_saidas:,.2f}</div>
+            <div class="kpi-value" style="color:#D9D9D9">{fmt_brl(total_saidas)}</div>
         </div>
-        """.replace(",", "X").replace(".", ",").replace("X", "."), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     with c3:
         st.markdown(f"""
         <div class="kpi-card">
             <div class="kpi-label">Saldo {ano}</div>
-            <div class="kpi-value" style="color:{saldo_cor}">R$ {total_saldo:,.2f}</div>
+            <div class="kpi-value" style="color:{saldo_cor}">{fmt_brl(total_saldo)}</div>
         </div>
-        """.replace(",", "X").replace(".", ",").replace("X", "."), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     st.markdown('<div class="secao-titulo">Entradas x Saídas por mês</div>', unsafe_allow_html=True)
 
     chart_df = df.set_index("Mês")[["Entradas", "Saídas"]]
     st.bar_chart(
         chart_df,
-        color=["#38E0A0", "#FF8A7A"],
+        color=["#FF8C42", "#5A5A5A"],
         use_container_width=True,
-        height=280,
+        height=260,
     )
 
     st.markdown('<div class="secao-titulo">Saldo mensal</div>', unsafe_allow_html=True)
     saldo_df = df.set_index("Mês")[["Saldo"]]
     st.bar_chart(
         saldo_df,
-        color=["#3D5AFE"],
+        color=["#FF8C42"],
         use_container_width=True,
-        height=220,
+        height=200,
     )
 
-    # Tabela resumo mensal
+    # Tabela resumo mensal — meses na horizontal (colunas), valores na vertical (linhas)
     st.markdown('<div class="secao-titulo">Detalhe mensal</div>', unsafe_allow_html=True)
-    tabela_html = """
-    <div class="tabela-wrapper">
-        <div class="tabela-header" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
-            <span>Mês</span>
-            <span style="text-align:right">Entradas</span>
-            <span style="text-align:right">Saídas</span>
-            <span style="text-align:right">Saldo</span>
-        </div>
+
+    meses = df["Mês"].tolist()
+    n_meses = len(meses)
+    col_width = max(60, int(420 / (n_meses + 1)))
+
+    def linha_tabela(label, valores, cor=None, destaque=False, cor_por_valor=False):
+        peso = "font-weight:700;" if destaque else "font-weight:500;"
+        bg = "background:#2C2C2C;" if destaque else ""
+        celulas = ""
+        for v in valores:
+            if cor_por_valor:
+                cor_cel = "#FF8C42" if v >= 0 else "#A3A3A3"
+            else:
+                cor_cel = cor or "#EDEDED"
+            valor_fmt = f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            celulas += (
+                f'<td style="padding:6px 8px; text-align:right; color:{cor_cel}; {peso} '
+                f'border-bottom:1px solid #2C2C2C; font-size:12px; white-space:nowrap;">'
+                f'{valor_fmt}</td>'
+            )
+        return (
+            f'<tr style="{bg}">'
+            f'<td style="padding:6px 8px; color:#8A8A8A; font-size:11px; font-weight:600; '
+            f'text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid #2C2C2C; '
+            f'white-space:nowrap; position:sticky; left:0; background:#1E1E1E;">{label}</td>'
+            f'{celulas}</tr>'
+        )
+
+    header_cells = "".join(
+        f'<th style="padding:6px 8px; text-align:right; font-size:11px; font-weight:600; '
+        f'color:#8A8A8A; text-transform:uppercase; letter-spacing:0.5px; '
+        f'border-bottom:1px solid #3A3A3A; white-space:nowrap;">{m}</th>'
+        for m in meses
+    )
+
+    tabela_html = f"""
+    <div class="tabela-wrapper" style="overflow-x:auto; border-radius:8px;">
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#1E1E1E;">
+                    <th style="padding:6px 8px; border-bottom:1px solid #3A3A3A; position:sticky; left:0; background:#1E1E1E;"></th>
+                    {header_cells}
+                </tr>
+            </thead>
+            <tbody>
+                {linha_tabela("Entradas", df["Entradas"].tolist(), cor="#FF8C42")}
+                {linha_tabela("Saídas", df["Saídas"].tolist(), cor="#D9D9D9")}
+                {linha_tabela("Saldo", df["Saldo"].tolist(), destaque=True, cor_por_valor=True)}
+            </tbody>
+        </table>
+    </div>
     """
-    for _, row in df.iterrows():
-        cor_saldo = "#38E0A0" if row["Saldo"] >= 0 else "#FF8A7A"
-        tabela_html += f"""
-        <div class="tabela-linha" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
-            <span>{row['Mês']}</span>
-            <span style="text-align:right; color:#38E0A0">R$ {row['Entradas']:.2f}</span>
-            <span style="text-align:right; color:#FF8A7A">R$ {row['Saídas']:.2f}</span>
-            <span style="text-align:right; color:{cor_saldo}; font-weight:600">R$ {row['Saldo']:.2f}</span>
-        </div>
-        """
-    tabela_html += "</div>"
     st.markdown(tabela_html, unsafe_allow_html=True)
 
 
@@ -770,32 +809,15 @@ def tela_novo_lancamento():
 
     qtd_parcelas = 1
     if pagamento == "Credito":
-        st.markdown("**Parcelas**")
-        col_menos, col_num, col_mais = st.columns([1, 2, 1])
-        with col_menos:
-            st.markdown('<div class="btn-parcela">', unsafe_allow_html=True)
-            if st.button("−", key="btn_menos", use_container_width=True):
-                if st.session_state.qtd_temp > 1:
-                    st.session_state.qtd_temp -= 1
-                    st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+        col_num, _ = st.columns([1, 3])
         with col_num:
-            novo_val = st.number_input(
-                "qtd", min_value=1, max_value=48,
+            qtd_parcelas = st.number_input(
+                "Parcelas", min_value=1, max_value=48,
                 value=st.session_state.qtd_temp, step=1,
-                label_visibility="collapsed",
             )
-            if int(novo_val) != st.session_state.qtd_temp:
-                st.session_state.qtd_temp = int(novo_val)
-        with col_mais:
-            st.markdown('<div class="btn-parcela">', unsafe_allow_html=True)
-            if st.button("＋", key="btn_mais", use_container_width=True):
-                if st.session_state.qtd_temp < 48:
-                    st.session_state.qtd_temp += 1
-                    st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+            qtd_parcelas = int(qtd_parcelas)
+            st.session_state.qtd_temp = qtd_parcelas
 
-        qtd_parcelas = st.session_state.qtd_temp
         if valor_total and qtd_parcelas > 1:
             st.caption(f"📌 {qtd_parcelas}x de R$ {valor_total / qtd_parcelas:.2f}")
 
