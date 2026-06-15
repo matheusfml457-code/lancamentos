@@ -572,6 +572,7 @@ def botao_voltar(destino: str):
 def tela_lancamentos():
     if st.button("+ Novo lançamento", use_container_width=True):
         st.session_state.qtd_temp = 1
+        st.session_state.qtd_parcelas = 1
         st.session_state.tela = "novo"
         st.rerun()
 
@@ -746,9 +747,10 @@ def tela_resumo_anual():
         )
 
     header_cells = "".join(
-        f'<th style="padding:6px 8px; text-align:right; font-size:11px; font-weight:600; '
+        f'<th style="padding:6px 6px; text-align:right; font-size:11px; font-weight:600; '
         f'color:#8A8A8A; text-transform:uppercase; letter-spacing:0.5px; '
-        f'border-bottom:1px solid #3A3A3A; white-space:nowrap;">{m}</th>'
+        f'border-bottom:1px solid #3A3A3A; white-space:nowrap; writing-mode:horizontal-tb; '
+        f'min-width:48px;">{m}</th>'
         for m in meses
     )
 
@@ -809,11 +811,14 @@ def tela_novo_lancamento():
 
     qtd_parcelas = 1
     if pagamento == "Credito":
+        if "qtd_parcelas" not in st.session_state:
+            st.session_state.qtd_parcelas = st.session_state.qtd_temp
+
         col_num, _ = st.columns([1, 3])
         with col_num:
             qtd_parcelas = st.number_input(
                 "Parcelas", min_value=1, max_value=48,
-                value=st.session_state.qtd_temp, step=1,
+                step=1, key="qtd_parcelas",
             )
             qtd_parcelas = int(qtd_parcelas)
             st.session_state.qtd_temp = qtd_parcelas
@@ -844,6 +849,7 @@ def tela_novo_lancamento():
         })
 
         st.session_state.qtd_temp = 1
+        st.session_state.qtd_parcelas = 1
         st.session_state.tela = "inicio"
         st.rerun()
 
