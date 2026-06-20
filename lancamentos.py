@@ -607,26 +607,26 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
             confirm_key = f"confirm_del_{chave_prefix}_{lancamento_id}"
 
             col_data, col_desc, col_tipo, col_valor, col_edit, col_del = st.columns(
-                [0.7, 2.6, 1.0, 1.1, 0.35, 0.35], vertical_alignment="center", gap="small"
+                [0.7, 2.6, 1.0, 1.1, 0.35, 0.35], vertical_alignment="top", gap="small"
             )
             with col_data:
                 st.markdown(
-                    f'<div style="font-size:13px; color:#8A8A8A;">{data_fmt}</div>',
+                    f'<div style="font-size:13px; color:#8A8A8A; padding-top:8px;">{data_fmt}</div>',
                     unsafe_allow_html=True,
                 )
             with col_desc:
                 st.markdown(
-                    f'<div style="font-size:13px;">{desc_html}</div>',
+                    f'<div style="font-size:13px; padding-top:8px;">{desc_html}</div>',
                     unsafe_allow_html=True,
                 )
             with col_tipo:
                 st.markdown(
-                    f'<div>{badge}</div>',
+                    f'<div style="padding-top:6px;">{badge}</div>',
                     unsafe_allow_html=True,
                 )
             with col_valor:
                 st.markdown(
-                    f'<div style="font-size:13px; text-align:right;">{valor_html}</div>',
+                    f'<div style="font-size:13px; text-align:right; padding-top:8px;">{valor_html}</div>',
                     unsafe_allow_html=True,
                 )
             with col_edit:
