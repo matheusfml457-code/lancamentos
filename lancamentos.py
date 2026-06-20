@@ -205,23 +205,25 @@ st.markdown("""
     }
 
     /* Botões de ação pequenos (editar/excluir) nas linhas da tabela */
-    .btn-acao-linha .stButton {
+    div[class*="st-key-btn_edit_"] .stButton,
+    div[class*="st-key-btn_confirm_del_"] .stButton {
         margin: 0 !important;
     }
-    .btn-acao-linha .stButton > button {
+    div[class*="st-key-btn_edit_"] button,
+    div[class*="st-key-btn_confirm_del_"] button {
         background-color: transparent !important;
         color: #6B6B6B !important;
         border: none !important;
         border-radius: 5px !important;
-        width: 24px !important;
-        height: 24px !important;
-        min-height: 24px !important;
-        min-width: 24px !important;
-        max-width: 24px !important;
-        max-height: 24px !important;
+        width: 26px !important;
+        height: 26px !important;
+        min-height: 26px !important;
+        min-width: 26px !important;
+        max-width: 26px !important;
+        max-height: 26px !important;
         padding: 0 !important;
-        margin: 0 !important;
-        font-size: 12px !important;
+        margin: 0 auto !important;
+        font-size: 13px !important;
         line-height: 1 !important;
         display: flex !important;
         align-items: center !important;
@@ -229,17 +231,16 @@ st.markdown("""
         overflow: hidden !important;
         box-shadow: none !important;
     }
-    .btn-acao-linha .stButton > button p {
-        font-size: 12px !important;
+    div[class*="st-key-btn_edit_"] button *,
+    div[class*="st-key-btn_confirm_del_"] button * {
+        font-size: 13px !important;
         line-height: 1 !important;
         margin: 0 !important;
     }
-    .btn-acao-linha .stButton > button:hover {
+    div[class*="st-key-btn_edit_"] button:hover,
+    div[class*="st-key-btn_confirm_del_"] button:hover {
         background-color: #2C2C2C !important;
         color: #FF8C42 !important;
-    }
-    .btn-acao-linha div[data-testid="stVerticalBlock"] {
-        gap: 0 !important;
     }
 
     .block-container { padding-top: 1.5rem; }
@@ -629,17 +630,13 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
                     unsafe_allow_html=True,
                 )
             with col_edit:
-                st.markdown('<div class="btn-acao-linha">', unsafe_allow_html=True)
                 if st.button("✎", key=f"btn_{edit_key}", help="Editar lançamento"):
                     st.session_state[edit_key] = not st.session_state.get(edit_key, False)
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
             with col_del:
-                st.markdown('<div class="btn-acao-linha">', unsafe_allow_html=True)
                 if st.button("🗑", key=f"btn_{confirm_key}", help="Excluir lançamento"):
                     st.session_state[confirm_key] = not st.session_state.get(confirm_key, False)
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
 
             # Confirmação de exclusão
             if st.session_state.get(confirm_key, False):
