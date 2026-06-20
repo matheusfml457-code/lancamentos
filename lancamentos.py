@@ -129,10 +129,10 @@ st.markdown("""
         font-size: 11px; font-weight: 600;
     }
     .badge-recebido {
-        background: #2C2C2C; color: #C9C9C9 !important;
-        border: 1px solid #4A4A4A;
+        background: #0E3B22; color: #4ADE80 !important;
+        border: 1px solid #4ADE80;
         border-radius: 5px; padding: 1px 6px;
-        font-size: 11px; font-weight: 600;
+        font-size: 11px; font-weight: 700;
     }
     .badge-salario {
         background: #3A2A1E; color: #FF8C42 !important;
@@ -350,9 +350,67 @@ def buscar_parcelas_do_mes(ano_mes: str):
     with conectar() as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute("""
-            SELECT p.id, p.numero, p.vencimento, p.valor, p.recebido,
+            SELECT p.id, p.lancamento_id, p.numero, p.vencimento, p.valor, p.recebido,
                    l.descricao, l.pagamento, l.qtd_parcelas, l.data_compra
             FROM parcelas p JOIN lancamentos l ON l.id = p.lancamento_id
+            WHERE strftime('%Y-%m', p.vencimento) = ?
+            ORDER BY l.data_compra ASC, l.id ASC
+        """, (ano_mes,)).fetchall()
+    return [dict(r) for r in rows]
+
+def buscar_lancamento(lancamento_id: int):
+    with conectar() as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("""
+            SELECT id, data_compra, descricao, pagamento, valor_total, qtd_parcelas, valor_parcela
+            FROM lancamentos WHERE id = ?
+        """, (lancamento_id,)).fetchone()
+    return dict(row) if row else None
+
+def excluir_lancamento(lancamento_id: int):
+    with conectar() as conn:
+        conn.execute("DELETE FROM parcelas WHERE lancamento_id = ?", (lancamento_id,))
+        conn.execute("DELETE FROM lancamentos WHERE id = ?", (lancamento_id,))
+
+def atualizar_lancamento(lancamento_id: int, dados: dict):
+    """Atualiza um lançamento existente, recriando suas parcelas do zero."""
+    data_compra = datetime.strptime(dados["data"], "%d/%m/%Y")
+    with conectar() as conn:
+        conn.execute("""
+            UPDATE lancamentos
+            SET data_compra = ?, descricao = ?, pagamento = ?,
+                valor_total = ?, qtd_parcelas = ?, valor_parcela = ?
+            WHERE id = ?
+        """, (dados["data"], dados["descricao"], dados["pagamento"],
+              dados["valor_total"], dados["qtd_parcelas"], dados["valor_parcela"],
+              lancamento_id))
+
+        # Remove parcelas antigas e recria
+        conn.execute("DELETE FROM parcelas WHERE lancamento_id = ?", (lancamento_id,))
+
+        qtd = dados["qtd_parcelas"]
+        valor_parcela = dados["valor_parcela"]
+        soma_parcelas = round(valor_parcela * qtd, 2)
+        diferenca = round(dados["valor_total"] - soma_parcelas, 2)
+
+        for i in range(qtd):
+            venc = data_compra + relativedelta(months=i)
+            valor_i = valor_parcela
+            if i == qtd - 1:
+                valor_i = round(valor_parcela + diferenca, 2)
+            conn.execute("""
+                INSERT INTO parcelas (lancamento_id, numero, vencimento, valor)
+                VALUES (?, ?, ?, ?)
+            """, (lancamento_id, i + 1, venc.strftime("%Y-%m-%d"), valor_i))
+
+def buscar_lancamentos_do_mes(ano_mes: str):
+    """Retorna lançamentos únicos (não parcelas) cujo vencimento de alguma parcela cai no mês."""
+    with conectar() as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("""
+            SELECT DISTINCT l.id, l.data_compra, l.descricao, l.pagamento,
+                   l.valor_total, l.qtd_parcelas, l.valor_parcela
+            FROM lancamentos l JOIN parcelas p ON p.lancamento_id = l.id
             WHERE strftime('%Y-%m', p.vencimento) = ?
             ORDER BY l.data_compra ASC, l.id ASC
         """, (ano_mes,)).fetchall()
@@ -444,7 +502,7 @@ LABEL_ATUAL   = f"{MESES_PT[MES_ATUAL_NUM]}/{ANO_ATUAL}"
 #  COMPONENTES
 # ══════════════════════════════════════════
 
-def bloco_mes(label: str, parcelas: list, chave_prefix: str):
+def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None):
     """
     Renderiza o bloco completo de um mês:
     cabeçalho azul + tabela de lançamentos + tabela resumo.
@@ -475,7 +533,7 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str):
 
         if p["pagamento"] == "A receber":
             if p["recebido"]:
-                valor_html = f'<span style="color:#C9C9C9; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
+                valor_html = f'<span style="color:#4ADE80; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
                 badge = '<span class="badge-recebido">Recebido ✓</span>'
             else:
                 valor_html = f'<span style="color:#9A9A9A; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
@@ -557,6 +615,120 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str):
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Editar / Excluir lançamentos do mês ──
+    if ano_mes:
+        with st.expander("✎ Editar ou excluir lançamentos"):
+            lancamentos_mes = buscar_lancamentos_do_mes(ano_mes)
+            if not lancamentos_mes:
+                st.caption("Nenhum lançamento neste mês.")
+            for l in lancamentos_mes:
+                edit_key = f"edit_{chave_prefix}_{l['id']}"
+                confirm_key = f"confirm_del_{chave_prefix}_{l['id']}"
+
+                col_desc, col_btn1, col_btn2 = st.columns([3, 1, 1])
+                with col_desc:
+                    parcela_txt = f" · {l['qtd_parcelas']}x" if l["qtd_parcelas"] > 1 else ""
+                    st.markdown(
+                        f"<div style='padding-top:6px; font-size:13px;'>"
+                        f"{l['data_compra']} — {l['descricao']}{parcela_txt} "
+                        f"<span style='color:#8A8A8A'>(R$ {l['valor_total']:.2f})</span></div>",
+                        unsafe_allow_html=True,
+                    )
+                with col_btn1:
+                    if st.button("Editar", key=f"btn_{edit_key}", use_container_width=True):
+                        st.session_state[edit_key] = not st.session_state.get(edit_key, False)
+                        st.rerun()
+                with col_btn2:
+                    if st.button("Excluir", key=f"btn_{confirm_key}", use_container_width=True):
+                        st.session_state[confirm_key] = not st.session_state.get(confirm_key, False)
+                        st.rerun()
+
+                # Confirmação de exclusão
+                if st.session_state.get(confirm_key, False):
+                    st.warning(f"Excluir '{l['descricao']}' permanentemente?")
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button("Sim, excluir", key=f"yes_{confirm_key}", use_container_width=True):
+                            excluir_lancamento(l["id"])
+                            st.session_state[confirm_key] = False
+                            st.rerun()
+                    with c2:
+                        if st.button("Cancelar", key=f"no_{confirm_key}", use_container_width=True):
+                            st.session_state[confirm_key] = False
+                            st.rerun()
+
+                # Formulário de edição
+                if st.session_state.get(edit_key, False):
+                    formulario_edicao_lancamento(l, edit_key)
+
+                st.markdown(
+                    "<hr style='border-color:#2C2C2C; margin:4px 0;'>",
+                    unsafe_allow_html=True,
+                )
+
+def formulario_edicao_lancamento(l: dict, edit_key: str):
+    """Formulário inline para editar um lançamento existente."""
+    pref = f"f_{edit_key}"
+
+    data_atual = datetime.strptime(l["data_compra"], "%d/%m/%Y").date()
+    nova_data = st.date_input(
+        "Data da compra", value=data_atual,
+        min_value=date(2026, 1, 1), format="DD/MM/YYYY",
+        key=f"{pref}_data",
+    )
+
+    nova_desc = st.text_input("Descrição", value=l["descricao"], key=f"{pref}_desc")
+
+    opcoes_pag = ["Pix", "Credito", "Debito", "A receber", "Salario"]
+    idx_pag = opcoes_pag.index(l["pagamento"]) if l["pagamento"] in opcoes_pag else 0
+    novo_pag = st.radio(
+        "Forma de pagamento", opcoes_pag,
+        index=idx_pag,
+        format_func=lambda x: {"Pix": "Pix", "Credito": "Crédito",
+                                "Debito": "Débito", "A receber": "A receber",
+                                "Salario": "Salário"}[x],
+        horizontal=True, key=f"{pref}_pag",
+    )
+
+    novo_valor = st.number_input(
+        "Valor total (R$)", min_value=0.01, value=float(l["valor_total"]),
+        step=0.01, format="%.2f", key=f"{pref}_valor",
+    )
+
+    nova_qtd = 1
+    if novo_pag == "Credito":
+        nova_qtd = st.number_input(
+            "Parcelas", min_value=1, max_value=48,
+            value=int(l["qtd_parcelas"]), step=1, key=f"{pref}_qtd",
+        )
+        nova_qtd = int(nova_qtd)
+        if nova_valor and nova_qtd > 1:
+            st.caption(f"📌 {nova_qtd}x de R$ {nova_valor / nova_qtd:.2f}")
+
+    col_salvar, col_cancelar = st.columns(2)
+    with col_salvar:
+        if st.button("Salvar alterações", key=f"{pref}_salvar", use_container_width=True):
+            if not nova_desc.strip():
+                st.error("Digite uma descrição.")
+            elif not novo_valor or novo_valor <= 0:
+                st.error("Digite um valor maior que zero.")
+            else:
+                valor_parcela = round(novo_valor / nova_qtd, 2)
+                atualizar_lancamento(l["id"], {
+                    "data": nova_data.strftime("%d/%m/%Y"),
+                    "descricao": nova_desc.strip(),
+                    "pagamento": novo_pag,
+                    "valor_total": novo_valor,
+                    "qtd_parcelas": nova_qtd,
+                    "valor_parcela": valor_parcela,
+                })
+                st.session_state[edit_key] = False
+                st.rerun()
+    with col_cancelar:
+        if st.button("Cancelar", key=f"{pref}_cancelar", use_container_width=True):
+            st.session_state[edit_key] = False
+            st.rerun()
+
 def botao_voltar(destino: str):
     st.markdown('<div class="btn-voltar">', unsafe_allow_html=True)
     if st.button("← Voltar"):
@@ -588,7 +760,7 @@ def tela_lancamentos():
     st.markdown('<div class="secao-titulo">Mês atual</div>', unsafe_allow_html=True)
     if atual_list:
         parcelas_atual = buscar_parcelas_do_mes(MES_ATUAL)
-        bloco_mes(LABEL_ATUAL, parcelas_atual, "atual")
+        bloco_mes(LABEL_ATUAL, parcelas_atual, "atual", ano_mes=MES_ATUAL)
     else:
         st.info("Nenhum lançamento este mês ainda.")
 
@@ -629,7 +801,7 @@ def tela_lancamentos():
 
             if aberto:
                 parcelas_mes = buscar_parcelas_do_mes(m["ano_mes"])
-                bloco_mes(m["label"], parcelas_mes, f"prox_{m['ano_mes']}")
+                bloco_mes(m["label"], parcelas_mes, f"prox_{m['ano_mes']}", ano_mes=m["ano_mes"])
 
     # ── MESES ANTERIORES ──
     if anteriores:
@@ -895,7 +1067,7 @@ def tela_detalhe_mes():
     botao_voltar("inicio")
     st.title(mes["label"])
     parcelas = buscar_parcelas_do_mes(mes["ano_mes"])
-    bloco_mes(mes["label"], parcelas, f"det_{mes['ano_mes']}")
+    bloco_mes(mes["label"], parcelas, f"det_{mes['ano_mes']}", ano_mes=mes["ano_mes"])
 
 
 # ══════════════════════════════════════════
