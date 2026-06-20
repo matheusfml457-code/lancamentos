@@ -189,6 +189,23 @@ st.markdown("""
         font-weight: 400 !important;
     }
 
+    /* Botões de ação pequenos (editar/excluir) nas linhas da tabela */
+    .btn-acao-linha .stButton > button {
+        background-color: transparent !important;
+        color: #6B6B6B !important;
+        border: none !important;
+        padding: 2px 4px !important;
+        font-size: 14px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        line-height: 1.2 !important;
+        box-shadow: none !important;
+    }
+    .btn-acao-linha .stButton > button:hover {
+        background-color: #2C2C2C !important;
+        color: #FF8C42 !important;
+    }
+
     .block-container { padding-top: 1.5rem; }
 
     /* Tabs */
@@ -514,18 +531,21 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
     st.markdown(f'<div class="mes-header">📅 {label}</div>', unsafe_allow_html=True)
 
     # Cabeçalho das colunas
-    st.markdown("""
-    <div class="tabela-wrapper">
-        <div class="tabela-header">
+    st.markdown(f"""
+    <div class="tabela-wrapper" style="border-radius: 0;">
+        <div class="tabela-header" style="grid-template-columns: 55px 1fr 80px 85px 30px 30px;">
             <span>Data</span>
             <span>Descrição</span>
             <span>Tipo</span>
             <span style="text-align:right">Valor</span>
+            <span></span>
+            <span></span>
         </div>
+    </div>
     """, unsafe_allow_html=True)
 
-    # Linhas HTML (sem interação)
-    linhas_html = ""
+    st.markdown('<div class="tabela-wrapper" style="border-top:none; border-radius:0 0 8px 8px;">', unsafe_allow_html=True)
+
     for p in parcelas:
         data_fmt  = datetime.strptime(p["data_compra"], "%d/%m/%Y").strftime("%d/%m")
         parcela_txt = f"{p['numero']}/{p['qtd_parcelas']}" if p["qtd_parcelas"] > 1 else "1/1"
@@ -533,27 +553,90 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
 
         if p["pagamento"] == "A receber":
             if p["recebido"]:
-                valor_html = f'<span style="color:#4ADE80; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
+                valor_html = f'<span style="color:#4ADE80; font-weight:600">R$ {p["valor"]:.2f}</span>'
                 badge = '<span class="badge-recebido">Recebido ✓</span>'
             else:
-                valor_html = f'<span style="color:#9A9A9A; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
+                valor_html = f'<span style="color:#9A9A9A; font-weight:600">R$ {p["valor"]:.2f}</span>'
         elif p["pagamento"] == "Salario":
-            valor_html = f'<span style="color:#FF8C42; text-align:right; display:block; font-weight:700">+ R$ {p["valor"]:.2f}</span>'
+            valor_html = f'<span style="color:#FF8C42; font-weight:700">+ R$ {p["valor"]:.2f}</span>'
         else:
-            valor_html = f'<span style="color:#D9D9D9; text-align:right; display:block; font-weight:600">R$ {p["valor"]:.2f}</span>'
+            valor_html = f'<span style="color:#D9D9D9; font-weight:600">R$ {p["valor"]:.2f}</span>'
 
         desc_html = f'{p["descricao"]} <span style="color:#8A8A8A; font-size:11px">· {parcela_txt}</span>'
 
-        linhas_html += f"""
-        <div class="tabela-linha">
-            <span style="color:#8A8A8A">{data_fmt}</span>
-            <span>{desc_html}</span>
-            <span>{badge}</span>
-            {valor_html}
-        </div>
-        """
+        lancamento_id = p["lancamento_id"]
+        edit_key = f"edit_{chave_prefix}_{lancamento_id}"
+        confirm_key = f"confirm_del_{chave_prefix}_{lancamento_id}"
 
-    st.markdown(linhas_html + "</div>", unsafe_allow_html=True)
+        col_data, col_desc, col_tipo, col_valor, col_edit, col_del = st.columns(
+            [0.7, 2.6, 1.0, 1.1, 0.35, 0.35]
+        )
+        with col_data:
+            st.markdown(
+                f'<div style="font-size:13px; color:#8A8A8A; padding-top:7px;">{data_fmt}</div>',
+                unsafe_allow_html=True,
+            )
+        with col_desc:
+            st.markdown(
+                f'<div style="font-size:13px; padding-top:7px;">{desc_html}</div>',
+                unsafe_allow_html=True,
+            )
+        with col_tipo:
+            st.markdown(
+                f'<div style="padding-top:5px;">{badge}</div>',
+                unsafe_allow_html=True,
+            )
+        with col_valor:
+            st.markdown(
+                f'<div style="font-size:13px; text-align:right; padding-top:7px;">{valor_html}</div>',
+                unsafe_allow_html=True,
+            )
+        with col_edit:
+            st.markdown('<div class="btn-acao-linha">', unsafe_allow_html=True)
+            if st.button("✎", key=f"btn_{edit_key}", help="Editar lançamento"):
+                st.session_state[edit_key] = not st.session_state.get(edit_key, False)
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+        with col_del:
+            st.markdown('<div class="btn-acao-linha">', unsafe_allow_html=True)
+            if st.button("🗑", key=f"btn_{confirm_key}", help="Excluir lançamento"):
+                st.session_state[confirm_key] = not st.session_state.get(confirm_key, False)
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # Confirmação de exclusão
+        if st.session_state.get(confirm_key, False):
+            st.warning(f"Excluir **{p['descricao']}** permanentemente? Isso remove todas as parcelas deste lançamento.")
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("Sim, excluir", key=f"yes_{confirm_key}", use_container_width=True):
+                    excluir_lancamento(lancamento_id)
+                    st.session_state[confirm_key] = False
+                    st.rerun()
+            with c2:
+                if st.button("Cancelar", key=f"no_{confirm_key}", use_container_width=True):
+                    st.session_state[confirm_key] = False
+                    st.rerun()
+
+        # Formulário de edição
+        if st.session_state.get(edit_key, False):
+            lancamento_completo = buscar_lancamento(lancamento_id)
+            if lancamento_completo:
+                with st.container():
+                    st.markdown(
+                        '<div style="background:#1E1E1E; border:1px solid #3A3A3A; '
+                        'border-radius:8px; padding:12px 14px; margin:4px 0 10px 0;">',
+                        unsafe_allow_html=True,
+                    )
+                    formulario_edicao_lancamento(lancamento_completo, edit_key)
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown(
+            "<hr style='border-color:#2C2C2C; margin:2px 0;'>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # Checkboxes para "A receber" — fora do HTML para ter interação
     receber_list = [p for p in parcelas if p["pagamento"] == "A receber"]
@@ -614,57 +697,6 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-    # ── Editar / Excluir lançamentos do mês ──
-    if ano_mes:
-        with st.expander("✎ Editar ou excluir lançamentos"):
-            lancamentos_mes = buscar_lancamentos_do_mes(ano_mes)
-            if not lancamentos_mes:
-                st.caption("Nenhum lançamento neste mês.")
-            for l in lancamentos_mes:
-                edit_key = f"edit_{chave_prefix}_{l['id']}"
-                confirm_key = f"confirm_del_{chave_prefix}_{l['id']}"
-
-                col_desc, col_btn1, col_btn2 = st.columns([3, 1, 1])
-                with col_desc:
-                    parcela_txt = f" · {l['qtd_parcelas']}x" if l["qtd_parcelas"] > 1 else ""
-                    st.markdown(
-                        f"<div style='padding-top:6px; font-size:13px;'>"
-                        f"{l['data_compra']} — {l['descricao']}{parcela_txt} "
-                        f"<span style='color:#8A8A8A'>(R$ {l['valor_total']:.2f})</span></div>",
-                        unsafe_allow_html=True,
-                    )
-                with col_btn1:
-                    if st.button("Editar", key=f"btn_{edit_key}", use_container_width=True):
-                        st.session_state[edit_key] = not st.session_state.get(edit_key, False)
-                        st.rerun()
-                with col_btn2:
-                    if st.button("Excluir", key=f"btn_{confirm_key}", use_container_width=True):
-                        st.session_state[confirm_key] = not st.session_state.get(confirm_key, False)
-                        st.rerun()
-
-                # Confirmação de exclusão
-                if st.session_state.get(confirm_key, False):
-                    st.warning(f"Excluir '{l['descricao']}' permanentemente?")
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        if st.button("Sim, excluir", key=f"yes_{confirm_key}", use_container_width=True):
-                            excluir_lancamento(l["id"])
-                            st.session_state[confirm_key] = False
-                            st.rerun()
-                    with c2:
-                        if st.button("Cancelar", key=f"no_{confirm_key}", use_container_width=True):
-                            st.session_state[confirm_key] = False
-                            st.rerun()
-
-                # Formulário de edição
-                if st.session_state.get(edit_key, False):
-                    formulario_edicao_lancamento(l, edit_key)
-
-                st.markdown(
-                    "<hr style='border-color:#2C2C2C; margin:4px 0;'>",
-                    unsafe_allow_html=True,
-                )
 
 def formulario_edicao_lancamento(l: dict, edit_key: str):
     """Formulário inline para editar um lançamento existente."""
