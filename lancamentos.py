@@ -48,6 +48,21 @@ st.markdown("""
         overflow: hidden;
         margin-bottom: 4px;
     }
+
+    /* Container nativo (st.container border=True) usado para a lista de lançamentos */
+    .lista-lancamentos div[data-testid="stVerticalBlockBorderWrapper"] {
+        margin-top: -1px !important;
+    }
+    .lista-lancamentos div[data-testid="stVerticalBlockBorderWrapper"] > div {
+        background: #232323 !important;
+        border: 1px solid #3A3A3A !important;
+        border-top: none !important;
+        border-radius: 0 0 8px 8px !important;
+        padding: 6px 10px !important;
+    }
+    .lista-lancamentos div[data-testid="stVerticalBlock"] {
+        gap: 0.15rem !important;
+    }
     .tabela-header {
         display: grid;
         grid-template-columns: 60px 1fr 85px 60px;
@@ -190,20 +205,41 @@ st.markdown("""
     }
 
     /* Botões de ação pequenos (editar/excluir) nas linhas da tabela */
+    .btn-acao-linha .stButton {
+        margin: 0 !important;
+    }
     .btn-acao-linha .stButton > button {
         background-color: transparent !important;
         color: #6B6B6B !important;
         border: none !important;
-        padding: 2px 4px !important;
-        font-size: 14px !important;
-        min-height: 0 !important;
-        height: auto !important;
-        line-height: 1.2 !important;
+        border-radius: 5px !important;
+        width: 24px !important;
+        height: 24px !important;
+        min-height: 24px !important;
+        min-width: 24px !important;
+        max-width: 24px !important;
+        max-height: 24px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 12px !important;
+        line-height: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
         box-shadow: none !important;
+    }
+    .btn-acao-linha .stButton > button p {
+        font-size: 12px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
     }
     .btn-acao-linha .stButton > button:hover {
         background-color: #2C2C2C !important;
         color: #FF8C42 !important;
+    }
+    .btn-acao-linha div[data-testid="stVerticalBlock"] {
+        gap: 0 !important;
     }
 
     .block-container { padding-top: 1.5rem; }
@@ -544,97 +580,99 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="tabela-wrapper" style="border-top:none; border-radius:0 0 8px 8px;">', unsafe_allow_html=True)
+    st.markdown('<div class="lista-lancamentos">', unsafe_allow_html=True)
+    container_tabela = st.container(border=True)
+    with container_tabela:
+        for p in parcelas:
+            data_fmt  = datetime.strptime(p["data_compra"], "%d/%m/%Y").strftime("%d/%m")
+            parcela_txt = f"{p['numero']}/{p['qtd_parcelas']}" if p["qtd_parcelas"] > 1 else "1/1"
+            badge     = BADGE_HTML.get(p["pagamento"], p["pagamento"])
 
-    for p in parcelas:
-        data_fmt  = datetime.strptime(p["data_compra"], "%d/%m/%Y").strftime("%d/%m")
-        parcela_txt = f"{p['numero']}/{p['qtd_parcelas']}" if p["qtd_parcelas"] > 1 else "1/1"
-        badge     = BADGE_HTML.get(p["pagamento"], p["pagamento"])
-
-        if p["pagamento"] == "A receber":
-            if p["recebido"]:
-                valor_html = f'<span style="color:#4ADE80; font-weight:600">R$ {p["valor"]:.2f}</span>'
-                badge = '<span class="badge-recebido">Recebido ✓</span>'
+            if p["pagamento"] == "A receber":
+                if p["recebido"]:
+                    valor_html = f'<span style="color:#4ADE80; font-weight:600">R$ {p["valor"]:.2f}</span>'
+                    badge = '<span class="badge-recebido">Recebido ✓</span>'
+                else:
+                    valor_html = f'<span style="color:#9A9A9A; font-weight:600">R$ {p["valor"]:.2f}</span>'
+            elif p["pagamento"] == "Salario":
+                valor_html = f'<span style="color:#FF8C42; font-weight:700">+ R$ {p["valor"]:.2f}</span>'
             else:
-                valor_html = f'<span style="color:#9A9A9A; font-weight:600">R$ {p["valor"]:.2f}</span>'
-        elif p["pagamento"] == "Salario":
-            valor_html = f'<span style="color:#FF8C42; font-weight:700">+ R$ {p["valor"]:.2f}</span>'
-        else:
-            valor_html = f'<span style="color:#D9D9D9; font-weight:600">R$ {p["valor"]:.2f}</span>'
+                valor_html = f'<span style="color:#D9D9D9; font-weight:600">R$ {p["valor"]:.2f}</span>'
 
-        desc_html = f'{p["descricao"]} <span style="color:#8A8A8A; font-size:11px">· {parcela_txt}</span>'
+            desc_html = f'{p["descricao"]} <span style="color:#8A8A8A; font-size:11px">· {parcela_txt}</span>'
 
-        lancamento_id = p["lancamento_id"]
-        edit_key = f"edit_{chave_prefix}_{lancamento_id}"
-        confirm_key = f"confirm_del_{chave_prefix}_{lancamento_id}"
+            lancamento_id = p["lancamento_id"]
+            edit_key = f"edit_{chave_prefix}_{lancamento_id}"
+            confirm_key = f"confirm_del_{chave_prefix}_{lancamento_id}"
 
-        col_data, col_desc, col_tipo, col_valor, col_edit, col_del = st.columns(
-            [0.7, 2.6, 1.0, 1.1, 0.35, 0.35]
-        )
-        with col_data:
-            st.markdown(
-                f'<div style="font-size:13px; color:#8A8A8A; padding-top:7px;">{data_fmt}</div>',
-                unsafe_allow_html=True,
+            col_data, col_desc, col_tipo, col_valor, col_edit, col_del = st.columns(
+                [0.7, 2.6, 1.0, 1.1, 0.35, 0.35], vertical_alignment="center", gap="small"
             )
-        with col_desc:
-            st.markdown(
-                f'<div style="font-size:13px; padding-top:7px;">{desc_html}</div>',
-                unsafe_allow_html=True,
-            )
-        with col_tipo:
-            st.markdown(
-                f'<div style="padding-top:5px;">{badge}</div>',
-                unsafe_allow_html=True,
-            )
-        with col_valor:
-            st.markdown(
-                f'<div style="font-size:13px; text-align:right; padding-top:7px;">{valor_html}</div>',
-                unsafe_allow_html=True,
-            )
-        with col_edit:
-            st.markdown('<div class="btn-acao-linha">', unsafe_allow_html=True)
-            if st.button("✎", key=f"btn_{edit_key}", help="Editar lançamento"):
-                st.session_state[edit_key] = not st.session_state.get(edit_key, False)
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col_del:
-            st.markdown('<div class="btn-acao-linha">', unsafe_allow_html=True)
-            if st.button("🗑", key=f"btn_{confirm_key}", help="Excluir lançamento"):
-                st.session_state[confirm_key] = not st.session_state.get(confirm_key, False)
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        # Confirmação de exclusão
-        if st.session_state.get(confirm_key, False):
-            st.warning(f"Excluir **{p['descricao']}** permanentemente? Isso remove todas as parcelas deste lançamento.")
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("Sim, excluir", key=f"yes_{confirm_key}", use_container_width=True):
-                    excluir_lancamento(lancamento_id)
-                    st.session_state[confirm_key] = False
+            with col_data:
+                st.markdown(
+                    f'<div style="font-size:13px; color:#8A8A8A;">{data_fmt}</div>',
+                    unsafe_allow_html=True,
+                )
+            with col_desc:
+                st.markdown(
+                    f'<div style="font-size:13px;">{desc_html}</div>',
+                    unsafe_allow_html=True,
+                )
+            with col_tipo:
+                st.markdown(
+                    f'<div>{badge}</div>',
+                    unsafe_allow_html=True,
+                )
+            with col_valor:
+                st.markdown(
+                    f'<div style="font-size:13px; text-align:right;">{valor_html}</div>',
+                    unsafe_allow_html=True,
+                )
+            with col_edit:
+                st.markdown('<div class="btn-acao-linha">', unsafe_allow_html=True)
+                if st.button("✎", key=f"btn_{edit_key}", help="Editar lançamento"):
+                    st.session_state[edit_key] = not st.session_state.get(edit_key, False)
                     st.rerun()
-            with c2:
-                if st.button("Cancelar", key=f"no_{confirm_key}", use_container_width=True):
-                    st.session_state[confirm_key] = False
+                st.markdown('</div>', unsafe_allow_html=True)
+            with col_del:
+                st.markdown('<div class="btn-acao-linha">', unsafe_allow_html=True)
+                if st.button("🗑", key=f"btn_{confirm_key}", help="Excluir lançamento"):
+                    st.session_state[confirm_key] = not st.session_state.get(confirm_key, False)
                     st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
 
-        # Formulário de edição
-        if st.session_state.get(edit_key, False):
-            lancamento_completo = buscar_lancamento(lancamento_id)
-            if lancamento_completo:
-                with st.container():
-                    st.markdown(
-                        '<div style="background:#1E1E1E; border:1px solid #3A3A3A; '
-                        'border-radius:8px; padding:12px 14px; margin:4px 0 10px 0;">',
-                        unsafe_allow_html=True,
-                    )
-                    formulario_edicao_lancamento(lancamento_completo, edit_key)
-                    st.markdown('</div>', unsafe_allow_html=True)
+            # Confirmação de exclusão
+            if st.session_state.get(confirm_key, False):
+                st.warning(f"Excluir **{p['descricao']}** permanentemente? Isso remove todas as parcelas deste lançamento.")
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button("Sim, excluir", key=f"yes_{confirm_key}", use_container_width=True):
+                        excluir_lancamento(lancamento_id)
+                        st.session_state[confirm_key] = False
+                        st.rerun()
+                with c2:
+                    if st.button("Cancelar", key=f"no_{confirm_key}", use_container_width=True):
+                        st.session_state[confirm_key] = False
+                        st.rerun()
 
-        st.markdown(
-            "<hr style='border-color:#2C2C2C; margin:2px 0;'>",
-            unsafe_allow_html=True,
-        )
+            # Formulário de edição
+            if st.session_state.get(edit_key, False):
+                lancamento_completo = buscar_lancamento(lancamento_id)
+                if lancamento_completo:
+                    with st.container():
+                        st.markdown(
+                            '<div style="background:#1E1E1E; border:1px solid #3A3A3A; '
+                            'border-radius:8px; padding:12px 14px; margin:4px 0 10px 0;">',
+                            unsafe_allow_html=True,
+                        )
+                        formulario_edicao_lancamento(lancamento_completo, edit_key)
+                        st.markdown('</div>', unsafe_allow_html=True)
+
+            if p is not parcelas[-1]:
+                st.markdown(
+                    "<hr style='border-color:#2C2C2C; margin:1px 0;'>",
+                    unsafe_allow_html=True,
+                )
 
     st.markdown('</div>', unsafe_allow_html=True)
 
