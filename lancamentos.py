@@ -417,6 +417,19 @@ def buscar_parcelas_do_mes(ano_mes: str):
         """, (ano_mes,)).fetchall()
     return [dict(r) for r in rows]
 
+def buscar_parcelas_por_descricao(termo: str):
+    """Busca todas as parcelas cujo lançamento tem descrição contendo o termo (case-insensitive)."""
+    with conectar() as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("""
+            SELECT p.id, p.lancamento_id, p.numero, p.vencimento, p.valor, p.recebido,
+                   l.descricao, l.pagamento, l.qtd_parcelas, l.data_compra
+            FROM parcelas p JOIN lancamentos l ON l.id = p.lancamento_id
+            WHERE l.descricao LIKE ? COLLATE NOCASE
+            ORDER BY p.vencimento DESC, l.id ASC
+        """, (f"%{termo}%",)).fetchall()
+    return [dict(r) for r in rows]
+
 def buscar_lancamento(lancamento_id: int):
     with conectar() as conn:
         conn.row_factory = sqlite3.Row
@@ -561,11 +574,15 @@ LABEL_ATUAL   = f"{MESES_PT[MES_ATUAL_NUM]}/{ANO_ATUAL}"
 #  COMPONENTES
 # ══════════════════════════════════════════
 
-def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None):
+def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None,
+               mostrar_resumo: bool = True, mostrar_ano: bool = False):
     """
     Renderiza o bloco completo de um mês:
     cabeçalho azul + tabela de lançamentos + tabela resumo.
     O check de 'recebido' só aparece em lançamentos 'A receber'.
+    mostrar_resumo=False omite a tabela de resumo financeiro (usado na busca,
+    onde os lançamentos podem ser de meses diferentes).
+    mostrar_ano=True mostra dd/mm/aaaa em vez de dd/mm (também usado na busca).
     """
     resumo = buscar_resumo_mes(parcelas)
 
@@ -590,7 +607,10 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
     container_tabela = st.container(border=True)
     with container_tabela:
         for p in parcelas:
-            data_fmt  = datetime.strptime(p["data_compra"], "%d/%m/%Y").strftime("%d/%m")
+            if mostrar_ano:
+                data_fmt = datetime.strptime(p["vencimento"], "%Y-%m-%d").strftime("%d/%m/%Y")
+            else:
+                data_fmt = datetime.strptime(p["data_compra"], "%d/%m/%Y").strftime("%d/%m")
             parcela_txt = f"{p['numero']}/{p['qtd_parcelas']}" if p["qtd_parcelas"] > 1 else "1/1"
             badge     = BADGE_HTML.get(p["pagamento"], p["pagamento"])
 
@@ -608,11 +628,12 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
             desc_html = f'{p["descricao"]} <span style="color:#8A8A8A; font-size:11px">· {parcela_txt}</span>'
 
             lancamento_id = p["lancamento_id"]
-            edit_key = f"edit_{chave_prefix}_{lancamento_id}"
-            confirm_key = f"confirm_del_{chave_prefix}_{lancamento_id}"
+            edit_key = f"edit_{chave_prefix}_{p['id']}"
+            confirm_key = f"confirm_del_{chave_prefix}_{p['id']}"
 
+            largura_data = 1.1 if mostrar_ano else 0.7
             col_data, col_desc, col_tipo, col_valor, col_edit, col_del = st.columns(
-                [0.7, 2.6, 1.0, 1.1, 0.35, 0.35], vertical_alignment="top", gap="small"
+                [largura_data, 2.6, 1.0, 1.1, 0.35, 0.35], vertical_alignment="top", gap="small"
             )
             with col_data:
                 st.markdown(
@@ -695,48 +716,49 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
         st.markdown('</div>', unsafe_allow_html=True)
 
     # Tabela resumo
-    pendente = resumo["a_receber"] - resumo["recebido"]
-    saldo_cor = "#FF8C42" if resumo["saldo"] >= 0 else "#A3A3A3"
-    st.markdown(f"""
-    <div class="resumo-wrapper">
-        <div class="resumo-header">Resumo do mês</div>
-        <div class="resumo-linha">
-            <span><span class="badge-salario">Salário</span></span>
-            <span style="font-weight:600; color:#FF8C42">+ R$ {resumo['salario']:.2f}</span>
+    if mostrar_resumo:
+        pendente = resumo["a_receber"] - resumo["recebido"]
+        saldo_cor = "#FF8C42" if resumo["saldo"] >= 0 else "#A3A3A3"
+        st.markdown(f"""
+        <div class="resumo-wrapper">
+            <div class="resumo-header">Resumo do mês</div>
+            <div class="resumo-linha">
+                <span><span class="badge-salario">Salário</span></span>
+                <span style="font-weight:600; color:#FF8C42">+ R$ {resumo['salario']:.2f}</span>
+            </div>
+            <div class="resumo-linha">
+                <span><span class="badge-pix">Pix</span></span>
+                <span style="font-weight:600">R$ {resumo['pix']:.2f}</span>
+            </div>
+            <div class="resumo-linha">
+                <span><span class="badge-credito">Crédito</span></span>
+                <span style="font-weight:600">R$ {resumo['credito']:.2f}</span>
+            </div>
+            <div class="resumo-linha">
+                <span><span class="badge-debito">Débito</span></span>
+                <span style="font-weight:600">R$ {resumo['debito']:.2f}</span>
+            </div>
+            <div class="resumo-linha">
+                <span><span class="badge-receber">A receber</span>
+                <span style="color:#8A8A8A; font-size:11px; margin-left:6px">
+                    (recebido R$ {resumo['recebido']:.2f} · pendente R$ {pendente:.2f})
+                </span></span>
+                <span style="color:#C9C9C9; font-weight:600">R$ {resumo['a_receber']:.2f}</span>
+            </div>
+            <div class="resumo-linha destaque">
+                <span style="color:#8A8A8A">Total saídas</span>
+                <span style="color:#D9D9D9">R$ {resumo['saidas']:.2f}</span>
+            </div>
+            <div class="resumo-linha destaque">
+                <span style="color:#8A8A8A">Total entradas</span>
+                <span style="color:#FF8C42">R$ {resumo['entradas']:.2f}</span>
+            </div>
+            <div class="resumo-linha destaque">
+                <span style="color:#EDEDED; font-weight:700">Saldo do mês</span>
+                <span style="color:{saldo_cor}; font-weight:700">R$ {resumo['saldo']:.2f}</span>
+            </div>
         </div>
-        <div class="resumo-linha">
-            <span><span class="badge-pix">Pix</span></span>
-            <span style="font-weight:600">R$ {resumo['pix']:.2f}</span>
-        </div>
-        <div class="resumo-linha">
-            <span><span class="badge-credito">Crédito</span></span>
-            <span style="font-weight:600">R$ {resumo['credito']:.2f}</span>
-        </div>
-        <div class="resumo-linha">
-            <span><span class="badge-debito">Débito</span></span>
-            <span style="font-weight:600">R$ {resumo['debito']:.2f}</span>
-        </div>
-        <div class="resumo-linha">
-            <span><span class="badge-receber">A receber</span>
-            <span style="color:#8A8A8A; font-size:11px; margin-left:6px">
-                (recebido R$ {resumo['recebido']:.2f} · pendente R$ {pendente:.2f})
-            </span></span>
-            <span style="color:#C9C9C9; font-weight:600">R$ {resumo['a_receber']:.2f}</span>
-        </div>
-        <div class="resumo-linha destaque">
-            <span style="color:#8A8A8A">Total saídas</span>
-            <span style="color:#D9D9D9">R$ {resumo['saidas']:.2f}</span>
-        </div>
-        <div class="resumo-linha destaque">
-            <span style="color:#8A8A8A">Total entradas</span>
-            <span style="color:#FF8C42">R$ {resumo['entradas']:.2f}</span>
-        </div>
-        <div class="resumo-linha destaque">
-            <span style="color:#EDEDED; font-weight:700">Saldo do mês</span>
-            <span style="color:{saldo_cor}; font-weight:700">R$ {resumo['saldo']:.2f}</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
 def formulario_edicao_lancamento(l: dict, edit_key: str):
     """Formulário inline para editar um lançamento existente."""
@@ -821,7 +843,27 @@ def tela_lancamentos():
         st.session_state.tela = "novo"
         st.rerun()
 
+    termo_busca = st.text_input(
+        "Buscar", placeholder="🔍 Buscar por descrição...",
+        label_visibility="collapsed", key="termo_busca",
+    )
+
     st.divider()
+
+    # ── RESULTADO DE BUSCA ──
+    if termo_busca and termo_busca.strip():
+        resultados = buscar_parcelas_por_descricao(termo_busca.strip())
+        st.markdown(
+            f'<div class="secao-titulo">Resultados para "{termo_busca.strip()}" '
+            f'({len(resultados)})</div>',
+            unsafe_allow_html=True,
+        )
+        if resultados:
+            bloco_mes("🔍 Busca", resultados, "busca", ano_mes=None,
+                      mostrar_resumo=False, mostrar_ano=True)
+        else:
+            st.info("Nenhum lançamento encontrado com essa descrição.")
+        return
 
     todos_meses = buscar_meses_com_parcelas()
     anteriores  = [m for m in todos_meses if m["ano_mes"] < MES_ATUAL]
