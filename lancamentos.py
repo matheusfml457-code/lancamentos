@@ -65,6 +65,20 @@ st.markdown("""
     .lista-lancamentos div[data-testid="stVerticalBlock"] {
         gap: 0.15rem !important;
     }
+
+    /* Bloco de checkboxes "Recebi" — remove espaçamento extra do Streamlit */
+    div[class*="st-key-receber_"] {
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+    }
+    div[class*="st-key-receber_"] div[data-testid="stVerticalBlock"] {
+        gap: 0.1rem !important;
+    }
+    div[class*="st-key-receber_"] label[data-testid="stWidgetLabel"],
+    div[class*="st-key-receber_"] div[data-testid="stCheckbox"] {
+        margin: 0 !important;
+        padding: 1px 0 !important;
+    }
     .tabela-header {
         display: grid;
         grid-template-columns: 60px 1fr 85px 60px;
@@ -251,6 +265,20 @@ st.markdown("""
     }
 
     .block-container { padding-top: 1.5rem; }
+
+    /* Reduz o espaçamento padrão (generoso) que o Streamlit insere entre
+       elementos consecutivos no fluxo principal da página */
+    .block-container > div[data-testid="stVerticalBlock"] {
+        gap: 0.25rem !important;
+    }
+    div[data-testid="stElementContainer"] {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
 
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] { gap: 4px; }
@@ -745,18 +773,18 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
     # Checkboxes para "A receber" — fora do HTML para ter interação
     receber_list = [p for p in parcelas if p["pagamento"] == "A receber"]
     if receber_list:
-        st.markdown('<div style="margin-top:6px; padding:0 4px">', unsafe_allow_html=True)
-        for p in receber_list:
-            marcado = bool(p["recebido"])
-            novo = st.checkbox(
-                f"✓  Recebi: {p['descricao']}  (R$ {p['valor']:.2f})",
-                value=marcado,
-                key=f"rec_{chave_prefix}_{p['id']}",
-            )
-            if novo != marcado:
-                marcar_recebido(p["id"], novo)
-                st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+        container_receber = st.container(key=f"receber_{chave_prefix}")
+        with container_receber:
+            for p in receber_list:
+                marcado = bool(p["recebido"])
+                novo = st.checkbox(
+                    f"✓  Recebi: {p['descricao']}  (R$ {p['valor']:.2f})",
+                    value=marcado,
+                    key=f"rec_{chave_prefix}_{p['id']}",
+                )
+                if novo != marcado:
+                    marcar_recebido(p["id"], novo)
+                    st.rerun()
 
     # Tabela resumo
     if mostrar_resumo:
@@ -891,9 +919,7 @@ def tela_lancamentos():
         label_visibility="collapsed", key="termo_busca",
     )
 
-    st.divider()
-
-    # ── RESULTADO DE BUSCA ──
+    st.markdown("<hr style='border-color:#3A3A3A; margin:10px 0;'>", unsafe_allow_html=True)
     if termo_busca and termo_busca.strip():
         resultados = buscar_parcelas_por_descricao(termo_busca.strip())
         st.markdown(
