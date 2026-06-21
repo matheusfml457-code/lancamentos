@@ -7,6 +7,8 @@
 import sqlite3
 import streamlit as st
 import pandas as pd
+import difflib
+import unicodedata
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
@@ -417,18 +419,59 @@ def buscar_parcelas_do_mes(ano_mes: str):
         """, (ano_mes,)).fetchall()
     return [dict(r) for r in rows]
 
+def normalizar_texto(texto: str) -> str:
+    """Remove acentos e baixa a caixa, para comparação tolerante."""
+    texto = texto.lower().strip()
+    texto = unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("ASCII")
+    return texto
+
+def similaridade_descricao(busca_norm: str, descricao: str) -> float:
+    """
+    Retorna um score de 0 a 1 indicando o quanto a descrição combina com o termo buscado.
+    1.0 = o termo aparece literalmente dentro da descrição (após normalizar acentos/caixa).
+    Caso contrário, usa similaridade aproximada (tolera letras trocadas/faltando) comparando
+    tanto a descrição inteira quanto cada palavra dela isoladamente.
+    """
+    desc_norm = normalizar_texto(descricao)
+    if busca_norm in desc_norm:
+        return 1.0
+    melhor = difflib.SequenceMatcher(None, busca_norm, desc_norm).ratio()
+    for palavra in desc_norm.split():
+        score = difflib.SequenceMatcher(None, busca_norm, palavra).ratio()
+        if score > melhor:
+            melhor = score
+    return melhor
+
+LIMIAR_BUSCA = 0.65  # quanto menor, mais tolerante a erros de digitação
+
 def buscar_parcelas_por_descricao(termo: str):
-    """Busca todas as parcelas cujo lançamento tem descrição contendo o termo (case-insensitive)."""
+    """
+    Busca todas as parcelas cujo lançamento tem descrição parecida com o termo.
+    Tolerante a acentuação e pequenos erros de digitação (não precisa ser exato).
+    """
+    termo_norm = normalizar_texto(termo)
+    if not termo_norm:
+        return []
+
     with conectar() as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute("""
             SELECT p.id, p.lancamento_id, p.numero, p.vencimento, p.valor, p.recebido,
                    l.descricao, l.pagamento, l.qtd_parcelas, l.data_compra
             FROM parcelas p JOIN lancamentos l ON l.id = p.lancamento_id
-            WHERE l.descricao LIKE ? COLLATE NOCASE
-            ORDER BY p.vencimento DESC, l.id ASC
-        """, (f"%{termo}%",)).fetchall()
-    return [dict(r) for r in rows]
+        """).fetchall()
+
+    candidatos = []
+    for r in rows:
+        score = similaridade_descricao(termo_norm, r["descricao"])
+        if score >= LIMIAR_BUSCA:
+            candidatos.append((score, dict(r)))
+
+    # Ordena por relevância (melhor match primeiro); empates ficam por data mais recente.
+    # sort() é estável, então ordenamos primeiro por data e depois por score.
+    candidatos.sort(key=lambda x: x[1]["vencimento"], reverse=True)
+    candidatos.sort(key=lambda x: x[0], reverse=True)
+    return [c[1] for c in candidatos]
 
 def buscar_lancamento(lancamento_id: int):
     with conectar() as conn:
