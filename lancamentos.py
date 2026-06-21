@@ -212,7 +212,6 @@ st.markdown("""
     div[class*="st-key-btn_edit_"] button,
     div[class*="st-key-btn_confirm_del_"] button {
         background-color: transparent !important;
-        color: #6B6B6B !important;
         border: none !important;
         border-radius: 5px !important;
         width: 26px !important;
@@ -222,24 +221,30 @@ st.markdown("""
         max-width: 26px !important;
         max-height: 26px !important;
         padding: 0 !important;
-        margin: 0 auto !important;
-        font-size: 13px !important;
+        margin: 2px auto 0 auto !important;
+        font-size: 14px !important;
         line-height: 1 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         box-shadow: none !important;
+        filter: none !important;
+        -webkit-text-fill-color: initial !important;
     }
-    div[class*="st-key-btn_edit_"] button *,
-    div[class*="st-key-btn_confirm_del_"] button * {
-        font-size: 13px !important;
+    div[class*="st-key-btn_edit_"] button p,
+    div[class*="st-key-btn_confirm_del_"] button p {
+        font-size: 14px !important;
         line-height: 1 !important;
         margin: 0 !important;
+        color: #6B6B6B;
     }
     div[class*="st-key-btn_edit_"] button:hover,
     div[class*="st-key-btn_confirm_del_"] button:hover {
         background-color: #2C2C2C !important;
+    }
+    div[class*="st-key-btn_edit_"] button:hover p,
+    div[class*="st-key-btn_confirm_del_"] button:hover p {
         color: #FF8C42 !important;
     }
 
@@ -611,22 +616,22 @@ def bloco_mes(label: str, parcelas: list, chave_prefix: str, ano_mes: str = None
             )
             with col_data:
                 st.markdown(
-                    f'<div style="font-size:13px; color:#8A8A8A; padding-top:8px;">{data_fmt}</div>',
+                    f'<div style="font-size:13px; color:#8A8A8A; padding-top:4px;">{data_fmt}</div>',
                     unsafe_allow_html=True,
                 )
             with col_desc:
                 st.markdown(
-                    f'<div style="font-size:13px; padding-top:8px;">{desc_html}</div>',
+                    f'<div style="font-size:13px; padding-top:4px;">{desc_html}</div>',
                     unsafe_allow_html=True,
                 )
             with col_tipo:
                 st.markdown(
-                    f'<div style="padding-top:6px;">{badge}</div>',
+                    f'<div style="padding-top:2px;">{badge}</div>',
                     unsafe_allow_html=True,
                 )
             with col_valor:
                 st.markdown(
-                    f'<div style="font-size:13px; text-align:right; padding-top:8px;">{valor_html}</div>',
+                    f'<div style="font-size:13px; text-align:right; padding-top:4px;">{valor_html}</div>',
                     unsafe_allow_html=True,
                 )
             with col_edit:
